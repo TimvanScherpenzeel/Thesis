@@ -2,10 +2,18 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <meta name="description" content="">
+        <meta name="description" content="Cloth simulation">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <title>Cloth simulation</title>
         <link rel="stylesheet" href="css/style.css">
+
+        <script src="js/vendor/three81.js"></script>
+        <script src="js/vendor/dat.gui.js"></script>
+        <script src="js/vendor/stats.min.js"></script>
+        <script src="js/vendor/OrbitControls.js"></script>
+        <script src="js/GUI.js"></script>
+        <script src="js/GPGPU.js"></script>
+        <script src="js/SimulationShader.js"></script>
     </head>
     <body>
         <!--
@@ -25,14 +33,6 @@
             - Look at border issues of cloth
             - Look at cloth collisions with other objects (z-fighting / clipping issues)
         -->
-        
-        <script src="js/vendor/three81.js"></script>
-        <script src="js/vendor/dat.gui.js"></script>
-        <script src="js/vendor/stats.min.js"></script>
-        <script src="js/vendor/OrbitControls.js"></script>
-        <script src="js/GUI.js"></script>
-        <script src="js/GPGPU.js"></script>
-        <script src="js/SimulationShader.js"></script>
 
         <script id="vs-particles" type="x-shader/x-vertex">
             uniform sampler2D map;
@@ -95,6 +95,7 @@
 
             }
         </script>
+
         <script id="fs-particles" type="x-shader/x-fragment">
             uniform sampler2D map;
             uniform sampler2D tex;
