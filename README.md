@@ -15,20 +15,26 @@ Known supported devices:
 Known unsupported devices:
 - Samsung Galaxy S7 Edge (2016)
 
+
 ![1.jpg](/screenshots/1.jpg?raw=true)
 *Macbook Pro Retina (2015)*
+
 
 ![2.jpg](/screenshots/2.jpg?raw=true)
 *Macbook Pro Retina (2015)*
 
+
 ![3.jpg](/screenshots/3.jpg?raw=true)
 *Macbook Pro Retina (2015)*
+
 
 ![4.jpg](/screenshots/4.jpg?raw=true)
 *iPad Mini 2 (2013)*
 
+
 ![5.jpg](/screenshots/5.jpg?raw=true)
 *iPad Mini 2 (2013)*
+
 
 ![6.jpg](/screenshots/6.jpg?raw=true)
 *iPad Mini 2 (2013)*
