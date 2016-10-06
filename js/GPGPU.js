@@ -1,6 +1,7 @@
-/**
+/*
  * @author mrdoob / http://www.mrdoob.com
  * https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js
+ * https://github.com/toji/webgl2-particles/tree/gh-pages/js
  */
 
 var GPGPU = function (renderer) {
