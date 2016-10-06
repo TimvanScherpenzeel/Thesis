@@ -65,6 +65,7 @@ GPGPU.SimulationShader = function () {
             'uniform vec2 Bnd;',
             'uniform vec4 u_pins;',
 
+            // returns the position of the given vertex along with its spring and damping constants
             'vec2 getNeighbor(int n, out float ks, out float kd) {',
                // structural springs (adjacent neighbors)
                //
@@ -90,7 +91,7 @@ GPGPU.SimulationShader = function () {
                //     o  o  o
                //
 
-            '  if (n<8) { ks = Shr[0]; kd = Shr[1]; } ',//ksShr,kdShr
+            '  if (n < 8) { ks = Shr[0]; kd = Shr[1]; } ',//ksShr,kdShr
             '  if (n == 4) return vec2(1.0, -1.0);',
             '  if (n == 5) return vec2(-1.0, -1.0);',
             '  if (n == 6) return vec2(-1.0, 1.0);',
@@ -109,7 +110,7 @@ GPGPU.SimulationShader = function () {
                //     o   o   o   o   o
                //
 
-            '  if (n<12) { ks = Bnd[0]; kd = Bnd[1]; }', //ksBnd,kdBnd
+            '  if (n < 12) { ks = Bnd[0]; kd = Bnd[1]; }', //ksBnd,kdBnd
             '  if (n == 8) return vec2(2.0, 0.0);',
             '  if (n == 9) return vec2(0.0, -2.0);',
             '  if (n == 10) return vec2(-2.0, 0.0);',
@@ -118,44 +119,67 @@ GPGPU.SimulationShader = function () {
             '}',
             
             'void main() {',
+            // Get the attributes of the current particle
             '  vec4 pos = texture2D(tPositions, vUv);',
-            '  vec3 F = vec3(0.0, -9.8 * 0.1, 0.0);', // Mass currently not implemented yet
+            '  vec4 vel =  texture2D(tVelocity, vUv);',
+
+            // Set gravitational force
+            '  vec3 gravity = vec3(0.0, -9.8 * 0.1, 0.0);',
+
+            '  vec3 force = gravity;',
+
+            // Add damping
+            // '  vec3 force = gravity * mass.xyz + vel.xyz * -u_damping;', // Mass currently not implemented yet
+            '  force += -u_damping * vel.xyz;',
 
             // Wind simulation
-            '  F.x += u_windX * sin(u_time + 10.0);',
-            '  F.y += u_windY * cos(u_time + 10.0);',
-            '  F.z += u_windZ * sin(u_time + 10.0);',
+            '  force.x += u_windX * sin(u_time + 10.0);',
+            '  force.y += u_windY * cos(u_time + 10.0);',
+            '  force.z += u_windZ * sin(u_time + 10.0);',
 
-            '  vec4 vel =  texture2D(tVelocity, vUv);',
-            '  F += -u_damping * vel.xyz;',
+            // Get neighbors
+            // Compute for all 12 neighbors of the current vertex (constructed by the springs above)
+            //
+            //             o        
+            //             | 
+            //         o---o---o    
+            //         |   |   |
+            //     o---o---m---o---o
+            //         |   |   |
+            //         o---o---o    
+            //             |
+            //             o        
 
             '  for (int k = 0; k < 12; k++) {',
             '    vec3 tempVel = vel.xyz;',
             '    float ks, kd;',
-            '    vec2 nCoord = getNeighbor(k, ks, kd);',
 
-            '    float inv_cloth_size = 1.0 / cloth_w;',
-            '    float rest_length = length(nCoord*inv_cloth_size);',
+                 // Get neighbor coordinates
+            '    vec2 neighborCoord = getNeighbor(k, ks, kd);',
 
-            '    nCoord = nCoord * (1.0 / cloth_w);',
-            '    vec2 newCoord = vUv+nCoord;',
-            '    if(newCoord.x <=0.0 || newCoord.x >= 1.0 || newCoord.y <= 0.0 || newCoord.y >= 1.0) continue;',
+            '    float invClothSize = 1.0 / cloth_w;', // size of a single patch in world space
+            '    float restLength = length(neighborCoord * invClothSize);', // length of a single patch at rest
 
+            '    neighborCoord = neighborCoord * (1.0 / cloth_w);',
+            '    vec2 newCoord = vUv + neighborCoord;',
+
+                 // Check for out of bounds indices
+            '    if(newCoord.x <= 0.0 || newCoord.x >= 1.0 || newCoord.y <= 0.0 || newCoord.y >= 1.0) continue;',
+
+                 // Calculate the velocity and change in position and velocity
             '    vec3 posNP = texture2D(tPositions, newCoord).xyz;',
-            '    vec3 v2 = texture2D(tVelocity, newCoord).xyz;',
+            '    vec3 velNP = texture2D(tVelocity, newCoord).xyz;',
             '    vec3 deltaP = pos.xyz - posNP;',
-
             '    tempVel += deltaP;',
+            '    vec3 deltaV = tempVel - velNP;',
+            '    float distance = length(deltaP);',
 
-            '    vec3 deltaV = tempVel - v2;',
-            '    float dist = length(deltaP);',
-            '    float leftTerm = -ks * (dist - rest_length);',
-            '    float rightTerm = kd * (dot(deltaV, deltaP) / dist);',
-            '    vec3 springForce = (leftTerm + rightTerm) * normalize(deltaP);',
-            '    F += springForce;',
+                 // Calculate the spring force
+            '    vec3 springForce = (-ks * (distance - restLength) + kd * (dot(deltaV, deltaP) / distance)) * normalize(deltaP);',
+            '    force += springForce;',
             '  };',
 
-            '  vec3 acc = F / 0.5;', // Mass currently not implemented yet
+            '  vec3 acc = force / 0.5;', // Mass currently not implemented yet
             '  bool pinBoolean = false;',
                
             '  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
