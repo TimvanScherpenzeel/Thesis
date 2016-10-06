@@ -28,6 +28,7 @@ GPGPU.SimulationShader = function () {
             tVelocity: { type: "t", value: texture },
             tPositions: { type: "t", value: texture },
             timestep: { type: "f", value: 0.003 },
+            u_mass: { type: "f", value: 0.0 },
             u_windX: { type: "f", value: 0.0 },
             u_windY: { type: "f", value: 0.0 },
             u_windZ: { type: "f", value: 0.0 },
@@ -55,6 +56,7 @@ GPGPU.SimulationShader = function () {
             'uniform sampler2D tVelocity;',  
             'uniform sampler2D tPositions;',
             'uniform float timestep;',
+            'uniform float u_mass;',
             'uniform float u_windX;',
             'uniform float u_windY;',
             'uniform float u_windZ;',
@@ -67,6 +69,7 @@ GPGPU.SimulationShader = function () {
 
             // returns the position of the given vertex along with its spring and damping constants
             'vec2 getNeighbor(int n, out float ks, out float kd) {',
+
                // structural springs (adjacent neighbors)
                //
                //        o
@@ -157,8 +160,11 @@ GPGPU.SimulationShader = function () {
                  // Get neighbor coordinates
             '    vec2 neighborCoord = getNeighbor(k, ks, kd);',
 
-            '    float invClothSize = 1.0 / cloth_w;', // size of a single patch in world space
-            '    float restLength = length(neighborCoord * invClothSize);', // length of a single patch at rest
+                 // Size of a single patch in world space
+            '    float invClothSize = 1.0 / cloth_w;',
+
+                 // Length of a single patch at rest
+            '    float restLength = length(neighborCoord * invClothSize);',
 
             '    neighborCoord = neighborCoord * (1.0 / cloth_w);',
             '    vec2 newCoord = vUv + neighborCoord;',
@@ -167,11 +173,11 @@ GPGPU.SimulationShader = function () {
             '    if(newCoord.x <= 0.0 || newCoord.x >= 1.0 || newCoord.y <= 0.0 || newCoord.y >= 1.0) continue;',
 
                  // Calculate the velocity and change in position and velocity
-            '    vec3 posNP = texture2D(tPositions, newCoord).xyz;',
-            '    vec3 velNP = texture2D(tVelocity, newCoord).xyz;',
-            '    vec3 deltaP = pos.xyz - posNP;',
+            '    vec3 posNeighborParticle = texture2D(tPositions, newCoord).xyz;',
+            '    vec3 velNeighborParticle = texture2D(tVelocity, newCoord).xyz;',
+            '    vec3 deltaP = pos.xyz - posNeighborParticle;',
             '    tempVel += deltaP;',
-            '    vec3 deltaV = tempVel - velNP;',
+            '    vec3 deltaV = tempVel - velNeighborParticle;',
             '    float distance = length(deltaP);',
 
                  // Calculate the spring force
@@ -179,11 +185,17 @@ GPGPU.SimulationShader = function () {
             '    force += springForce;',
             '  };',
 
-            '  vec3 acc = force / 0.5;', // Mass currently not implemented yet
-            '  bool pinBoolean = false;',
-               
+            '  vec3 acc;',
+            '  if(u_mass == 0.0) acc = vec3(0.0); else acc = force / u_mass;',
+
+               // Mass currently not implemented yet
+            // '  vec3 acc = force / mass + 0.5;',
+            
+            '  bool pinBoolean = false;',  
             '  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
             '  if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);', // Pin 2, Top right
+
+               // If the vertex is not marked as pin run the simulation
             '  if(pinBoolean) vel.xyz = vec3(0.0); else vel.xyz += acc * timestep;',
           
             '  gl_FragColor = vec4(vel.xyz,1.0);',
@@ -267,6 +279,7 @@ GPGPU.SimulationShader = function () {
             updateVelMat.uniforms.u_windY.value = gui.getWindForceY();
             updateVelMat.uniforms.u_windZ.value = gui.getWindForceZ();
             updateVelMat.uniforms.u_damping.value = gui.getDamping();
+            updateVelMat.uniforms.u_mass.value = gui.getMass();
             updateVelMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
             updateVelMat.uniforms.u_time.value = clock.getElapsedTime();
         },
