@@ -5,7 +5,7 @@
         <meta name="description" content="Cloth simulation">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
         <title>Cloth simulation</title>
-        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/main.css">
 
         <script src="js/vendor/three81.js"></script>
         <script src="js/vendor/dat.gui.js"></script>
@@ -17,19 +17,23 @@
     </head>
     <body>
         <!--
+        Credits:
+            - Ziwei Zong: https://github.com/zammiez/CIS565-Final-WebGL-Cloth-Simulation
+            - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole.
+
         To do:
-            - Implement https://github.com/mrdoob/three.js/blob/master/examples/js/GPUComputationRenderer.js
-            - Switch number of pins 
-            - Add lighting to backside of the cloth
+            - Implement GPUComputationRenderer.js instead of GPGPU.js
+            - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
             - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
-            - Framerate tests on mobile devices
+            - Framerate tests on various mobile devices
             - Identify and document issues regarding the camera controls on touch devices (it is not possible to both control the camera and interact with the cloth)
 
 
         Would like to implement:
             - Look at implementing particle mass (difficulty, approach?)
-            - Look at raycasting to add interactivity to the cloth (webgl2 particles example but without the leap)
-            - Raycast an area, not a single vertex
+            - Look at implementing rigid body physics
+            - Look at raycasting to add interactivity to the cloth
+            - Look at how to raycast an area, not a single vertex
             - Look at border issues of cloth
             - Look at cloth collisions with other objects (z-fighting / clipping issues)
         -->

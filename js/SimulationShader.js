@@ -1,6 +1,7 @@
-/**
+/*
  * @author mrdoob / http://www.mrdoob.com
  * https://github.com/mrdoob/brokenmantra/blob/master/js/gpgpu/SimulationShader.js
+ * https://github.com/zammiez/CIS565-Final-WebGL-Cloth-Simulation
  */
 
 GPGPU.SimulationShader = function () {
