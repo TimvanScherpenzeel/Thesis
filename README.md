@@ -15,6 +15,7 @@ Known supported devices:
 Known unsupported devices:
 - Samsung Galaxy S7 Edge (2016)
 
+&nbsp;
 
 ![1.jpg](/screenshots/1.jpg?raw=true)
 *Macbook Pro Retina (2015)*
