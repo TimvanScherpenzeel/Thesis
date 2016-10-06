@@ -14,6 +14,8 @@ var gui = function () {
         "Kd String": KdSpringAmount,
         "Kd Shear": KdSpringAmount,
         "Kd Bend": KdSpringAmount,
+        "Damping": DampingAmount,
+        "Mass": 0.5,
         "Wireframe": false,
 
         "Wind": true,
@@ -22,7 +24,6 @@ var gui = function () {
         "Wind Force Z": 0.15,
         "Pin 1": true,
         "Pin 2": true,
-        "Damping": DampingAmount,
         "Sim Speed": 5,
     };
 
@@ -52,6 +53,10 @@ var gui = function () {
     
     this.getKdBend = function () {
         return controls['Kd Bend'];
+    };
+
+    this.getMass = function () {
+        return controls['Mass'];
     };
 
     this.getDamping = function () {
@@ -108,6 +113,7 @@ var gui = function () {
         simulationSettings.add(controls, "Kd Shear");
         simulationSettings.add(controls, "Kd Bend");
         simulationSettings.add(controls, "Damping");
+        simulationSettings.add(controls, "Mass");
         simulationSettings.add(controls, "Wireframe");
        
         var interactionFolder = controls.gui.addFolder('Interactions');
