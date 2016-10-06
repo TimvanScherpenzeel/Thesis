@@ -1,412 +1,400 @@
-﻿
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <style>
-        body {
-            background-color: #000000;
-            margin: 0px;
-            padding: 0px;
-            overflow: hidden;
-        }
+﻿!<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="Cloth simulation">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <title>Cloth simulation</title>
+        <link rel="stylesheet" href="css/style.css">
 
-        .ac{
-            margin-top: 60px;
-        }
-    </style>
-</head>
-<body>
-    <!--
-
-    To do:
-        - Implement https://github.com/mrdoob/three.js/blob/master/examples/js/GPUComputationRenderer.js
-        - Switch number of pins 
-        - Add lighting to backside of the cloth
-        - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
-        - Framerate tests on mobile devices
-        - Identify and document issues regarding the camera controls on touch devices (it is not possible to both control the camera and interact with the cloth)
+        <script src="js/vendor/three81.js"></script>
+        <script src="js/vendor/dat.gui.js"></script>
+        <script src="js/vendor/stats.min.js"></script>
+        <script src="js/vendor/OrbitControls.js"></script>
+        <script src="js/GUI.js"></script>
+        <script src="js/GPGPU.js"></script>
+        <script src="js/SimulationShader.js"></script>
+    </head>
+    <body>
+        <!--
+        To do:
+            - Implement https://github.com/mrdoob/three.js/blob/master/examples/js/GPUComputationRenderer.js
+            - Switch number of pins 
+            - Add lighting to backside of the cloth
+            - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
+            - Framerate tests on mobile devices
+            - Identify and document issues regarding the camera controls on touch devices (it is not possible to both control the camera and interact with the cloth)
 
 
-    Would like to implement:
-        - Look at implementing particle mass (difficulty, approach?)
-        - Look at raycasting to add interactivity to the cloth (webgl2 particles example but without the leap)
-        - Raycast an area, not a single vertex
-        - Look at border issues of cloth
-        - Look at cloth collisions with other objects (z-fighting / clipping issues)
+        Would like to implement:
+            - Look at implementing particle mass (difficulty, approach?)
+            - Look at raycasting to add interactivity to the cloth (webgl2 particles example but without the leap)
+            - Raycast an area, not a single vertex
+            - Look at border issues of cloth
+            - Look at cloth collisions with other objects (z-fighting / clipping issues)
+        -->
 
-    -->
+        <script id="vs-particles" type="x-shader/x-vertex">
+            uniform sampler2D map;
+            uniform float width;
+            uniform float height;
+            varying vec2 vUv;
+            varying vec4 vPosition;
+            varying vec3 vNormal;
 
-    <script src="js/vendor/three81.js"></script>
-    <script src="js/vendor/dat.gui.js"></script>
-    <script src="js/vendor/stats.min.js"></script>
-    <script src="js/vendor/OrbitControls.js"></script>
-    <script src="js/GUI.js"></script>
-    <script src="js/GPGPU.js"></script>
-    <script src="js/SimulationShader.js"></script>
+            // https://learnit.itu.dk/pluginfile.php/127709/mod_resource/content/1/topic_5.cpp
+            vec3 calcNormal(vec3 p1,vec3 p2,vec3 p3) {
+                vec3 nor;
+                vec3 e1 = p2 - p1;
+                vec3 e2 = p3 - p1;
 
-    <script id="vs-particles" type="x-shader/x-vertex">
-        uniform sampler2D map;
-        uniform float width;
-        uniform float height;
-        varying vec2 vUv;
-        varying vec4 vPosition;
-        varying vec3 vNormal;
-
-        // https://learnit.itu.dk/pluginfile.php/127709/mod_resource/content/1/topic_5.cpp
-        vec3 calcNormal(vec3 p1,vec3 p2,vec3 p3) {
-            vec3 nor;
-            vec3 e1 = p2 - p1;
-            vec3 e2 = p3 - p1;
-
-            nor.x = e1.y * e2.z - e1.z * e2.y;
-            nor.y = e1.z * e2.x - e1.x * e2.z;
-            nor.z = e1.x * e2.y - e1.y * e2.x;
-            nor = normalize(nor);
-            return nor;
-        }
-
-        void main() {
-            vUv = position.xy + vec2(0.5 / width, 0.5 / height);
-            vec3 color = texture2D(map, vUv).rgb;
-            vPosition = vec4(color,1.0);
-
-            vec3 up = texture2D(map, vUv + vec2(0.0, 1.0 / height)).rgb;
-            vec3 down = texture2D(map, vUv + vec2(0.0, -1.0 / height)).rgb;
-            vec3 left = texture2D(map, vUv + vec2(-1.0 / width)).rgb;
-            vec3 right = texture2D(map, vUv + vec2(1.0 / width)).rgb;
-            
-            vNormal = vec3(0.0, 0.0, 0.0); 
-            vec3 nor0 = calcNormal(color, up, right);
-            vec3 nor1 = calcNormal(color, right, down);
-            vec3 nor2 = calcNormal(color, down, left);
-            vec3 nor3 = calcNormal(color, right, up);
-
-            if(dot(nor0, nor1) <= 0.0) {
-                nor1 = -nor1;
+                nor.x = e1.y * e2.z - e1.z * e2.y;
+                nor.y = e1.z * e2.x - e1.x * e2.z;
+                nor.z = e1.x * e2.y - e1.y * e2.x;
+                nor = normalize(nor);
+                return nor;
             }
 
-            if(dot(nor0, nor2) <= 0.0) {
-                nor2 = -nor2;
-            } 
-            if(dot(nor0, nor3) <= 0.0) {
-                nor3 = -nor3;
-            }
+            void main() {
+                vUv = position.xy + vec2(0.5 / width, 0.5 / height);
+                vec3 color = texture2D(map, vUv).rgb;
+                vPosition = vec4(color,1.0);
 
-            vNormal += (nor0 + nor1 + nor2 + nor3);
-            
-            // Prevents the edges of the cloth from Z-fighting
-            if(vUv.x <= 0.5 / width || vUv.y <= 0.5 / height || vUv.x >= 1.0-0.5 / width || vUv.y >= 1.0 - 0.5 / width) {
+                vec3 up = texture2D(map, vUv + vec2(0.0, 1.0 / height)).rgb;
+                vec3 down = texture2D(map, vUv + vec2(0.0, -1.0 / height)).rgb;
+                vec3 left = texture2D(map, vUv + vec2(-1.0 / width)).rgb;
+                vec3 right = texture2D(map, vUv + vec2(1.0 / width)).rgb;
+                
                 vNormal = vec3(0.0, 0.0, 0.0); 
-            } 
+                vec3 nor0 = calcNormal(color, up, right);
+                vec3 nor1 = calcNormal(color, right, down);
+                vec3 nor2 = calcNormal(color, down, left);
+                vec3 nor3 = calcNormal(color, right, up);
 
-            vNormal = normalize(vNormal);
-
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(color, 1.0);
-
-        }
-    </script>
-    <script id="fs-particles" type="x-shader/x-fragment">
-        uniform sampler2D map;
-        uniform sampler2D tex;
-        uniform vec3 camPos;
-        varying vec2 vUv;
-        varying vec4 vPosition;
-        varying vec3 vNormal;
-        
-        void main() {
-            // https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_shading_model
-            // http://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
-            vec3 pos = vPosition.xyz;
-            vec3 viewDir = normalize(camPos - pos);
-            vec3 nor = vNormal;
-            
-            if (dot(viewDir,nor) <= 0.0) {
-                nor = -nor;
-            }
-
-            // Possibly replace with a phong THREE shaderchunk
-            vec3 lightDir = vec3(1.0, 1.0, 1.0);
-            lightDir = normalize(lightDir);
-            vec3 reflDir = reflect(-lightDir, nor);
-
-            float lamb = max(dot(lightDir, nor), 0.0);
-            float spec = 0.0;
-            float amb = 0.2;
-            vec3 lightCol = vec3(0.1, 0.1, 0.1); // light amount and color
-            
-            if (lamb > 0.0) {
-                float specAngle = max(dot(reflDir, viewDir), 0.0);
-                spec = pow(specAngle,1.0);
-            }
-            
-            // Show normals as texture
-            // gl_FragColor = vec4(nor ,1.0);
-
-            // Rotate the texture to correct the orientation
-            vec4 clothTex = texture2D(tex, vec2(vUv.y, 1.0 - vUv.x));
-
-            // Apply lighting and texture
-            gl_FragColor = vec4(((lamb + spec + amb) * lightCol), 1.0) + clothTex;
-        }
-    </script>
-
-    <script>
-        var container, canvas, gl,stats;
-
-        // iOS devices only support half floats
-        // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
-        // https://stackoverflow.com/questions/13976091/floating-point-textures-in-opengl-es-2-0-on-ios-without-clamping-them-to-0-1
-        // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
-        var floatType = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? THREE.HalfFloatType : THREE.FloatType;
-
-        // Simulation speed
-        var count = 0;
-
-        // Clock for wind simulation
-        var clock = new THREE.Clock();
-
-        // Cloth size
-        var cloth_w = cloth_h = 100;
-
-        // Cloth texture
-        var clothTex = null;
-
-        // Gui
-        var gui;
-
-        var geometry;
-
-        var scene, camera, light, camControl, renderer;
-
-        var data, vtxIds, texture, points; 
-
-        var fboParticles, rtTexturePos, rtTexturePos2, simulationShader;
-
-        function init() {
-            container = document.createElement('div');
-            stats = new Stats();
-            stats.domElement.style.position = 'absolute';
-            stats.domElement.style.left = '10px';
-            stats.domElement.style.top = '10px';
-            container.appendChild(stats.domElement);
-
-            document.body.appendChild(container);
-
-            canvas = document.createElement('canvas');
-
-            renderer = new THREE.WebGLRenderer({ 
-                canvas: canvas, 
-                context: gl,
-                // antialias: true 
-            });
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            // renderer.sortObjects = false;
-            container.appendChild(renderer.domElement);
-
-            scene = new THREE.Scene();
-
-            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
-            camera.position.set(60, 100, 123);
-            camera.lookAt(scene.position);
-
-            camControl = new THREE.OrbitControls(camera, renderer.domElement);
-
-            scene.add(camera);
-
-            // General lighting
-            ambientLight = new THREE.AmbientLight(0x666666); // soft white light
-            scene.add(ambientLight);
-
-            directionalLight = new THREE.DirectionalLight(0xdfebff, 0.7);
-            directionalLight.position.set(50, 200, 100);
-            directionalLight.position.multiplyScalar(1.3);
-            scene.add(directionalLight);
-
-            // Pin holder 1
-            pinHolderTextureLoader = new THREE.TextureLoader();
-            pinHolderTexture = pinHolderTextureLoader.load('textures/pin.jpg');
-            pinHolderGeometry = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-            pinHolderMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-            pinHolderMesh = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
-            pinHolderMesh.position.set(49.0, 50, 0.45);
-            pinHolderMesh.rotation.x = Math.PI / 2;
-            scene.add(pinHolderMesh);
-
-            // Pin holder 2
-            pinHolderGeometry2 = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-            pinHolderMaterial2 = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-            pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry2, pinHolderMaterial2);
-            pinHolderMesh2.position.set(0.5, 50, 0.45);
-            pinHolderMesh2.rotation.x = Math.PI / 2;
-            scene.add(pinHolderMesh2);
-            
-            // Data texture of cloth
-            data = new Float32Array(cloth_w * cloth_h * 4);
-            vtxIds = new Float32Array(cloth_w * cloth_h * 4);
-            
-            for (var i = 0, t = 0, x = 0; x < cloth_w; x++) {
-                for (var y = 0; y < cloth_h; y++) {
-                    data[i + 0] = x * 1.0 / cloth_w;
-                    data[i + 1] = 1.0;
-                    data[i + 2] = y * 1.0 / cloth_h;
-                    data[i + 3] = 0.1;
-
-                    vtxIds[i + 0] = t;
-                    vtxIds[i + 1] = t;
-                    vtxIds[i + 2] = t;
-                    vtxIds[i + 3] = t;
-
-                    i += 4;
-                    t++;
+                if(dot(nor0, nor1) <= 0.0) {
+                    nor1 = -nor1;
                 }
-            }
 
-            // https://threejs.org/docs/?q=Data#Reference/Textures/DataTexture
-            texture = new THREE.DataTexture(data, cloth_w, cloth_h, THREE.RGBAFormat, THREE.FloatType);
-            texture.needsUpdate = true;
-
-            gpgpu = new GPGPU(renderer);
-            simulationShader = new GPGPU.SimulationShader();
-            simulationShader.setOriginsTexture(texture);
-            // console.log(simulationShader);
-
-            // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
-            // Set up an off-screen targets to render the data textures to
-            rtTexturePos = new THREE.WebGLRenderTarget(cloth_w, cloth_h, {
-                 wrapS: THREE.ClampToEdgeWrapping,
-                 wrapT: THREE.ClampToEdgeWrapping,
-                 minFilter: THREE.NearestFilter,
-                 magFilter: THREE.NearestFilter,
-                 format: THREE.RGBAFormat,
-                 type: floatType,
-                 stencilBuffer: false
-            });
-
-            // Clone the off-screen render target to allow for ping-pong FBO's
-            rtTexturePos2 = rtTexturePos.clone();
-
-            // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html
-            // Construct the geometry and faces of the cloth
-            geometry = new THREE.Geometry();
-
-            for (var i = 0, l = cloth_w * cloth_h; i < l; i++) {
-                var vertex = new THREE.Vector3();
-                vertex.x = (i % cloth_w) / cloth_w;
-                vertex.y = Math.floor(i / cloth_w) / cloth_h;
-                geometry.vertices.push(vertex);
-            }
-
-            for (var x = 0; x < cloth_w - 1; x++) {
-                for (var y = 0; y < cloth_h - 1; y++) {
-
-                    var v0 = x + cloth_w * y;
-                    var v1 = x + cloth_w * y + cloth_h;
-
-                    geometry.faces.push(new THREE.Face3(v1 + 1, v0, v1));
-                    geometry.faces.push(new THREE.Face3(v1, v0 + 1, v0));
-                    geometry.faces.push(new THREE.Face3(v1, v1 + 1, v0 + 1));
-                    geometry.faces.push(new THREE.Face3(v0 + 1, v1, v0));
-                    geometry.faces.push(new THREE.Face3(v1 + 1, v1, v0 + 1));
+                if(dot(nor0, nor2) <= 0.0) {
+                    nor2 = -nor2;
+                } 
+                if(dot(nor0, nor3) <= 0.0) {
+                    nor3 = -nor3;
                 }
+
+                vNormal += (nor0 + nor1 + nor2 + nor3);
+                
+                // Prevents the edges of the cloth from Z-fighting
+                if(vUv.x <= 0.5 / width || vUv.y <= 0.5 / height || vUv.x >= 1.0-0.5 / width || vUv.y >= 1.0 - 0.5 / width) {
+                    vNormal = vec3(0.0, 0.0, 0.0); 
+                } 
+
+                vNormal = normalize(vNormal);
+
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(color, 1.0);
+
             }
+        </script>
+
+        <script id="fs-particles" type="x-shader/x-fragment">
+            uniform sampler2D map;
+            uniform sampler2D tex;
+            uniform vec3 camPos;
+            varying vec2 vUv;
+            varying vec4 vPosition;
+            varying vec3 vNormal;
+            
+            void main() {
+                // https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_shading_model
+                // http://www.mathematik.uni-marburg.de/~thormae/lectures/graphics1/code/WebGLShaderLightMat/ShaderLightMat.html
+                vec3 pos = vPosition.xyz;
+                vec3 viewDir = normalize(camPos - pos);
+                vec3 nor = vNormal;
+                
+                if (dot(viewDir,nor) <= 0.0) {
+                    nor = -nor;
+                }
+
+                // Possibly replace with a phong THREE shaderchunk
+                vec3 lightDir = vec3(1.0, 1.0, 1.0);
+                lightDir = normalize(lightDir);
+                vec3 reflDir = reflect(-lightDir, nor);
+
+                float lamb = max(dot(lightDir, nor), 0.0);
+                float spec = 0.0;
+                float amb = 0.2;
+                vec3 lightCol = vec3(0.1, 0.1, 0.1); // light amount and color
+                
+                if (lamb > 0.0) {
+                    float specAngle = max(dot(reflDir, viewDir), 0.0);
+                    spec = pow(specAngle,1.0);
+                }
+                
+                // Show normals as texture
+                // gl_FragColor = vec4(nor ,1.0);
+
+                // Rotate the texture to correct the orientation
+                vec4 clothTex = texture2D(tex, vec2(vUv.y, 1.0 - vUv.x));
+
+                // Apply lighting and texture
+                gl_FragColor = vec4(((lamb + spec + amb) * lightCol), 1.0) + clothTex;
+            }
+        </script>
+
+        <script>
+            var container, canvas, gl,stats;
+
+            // iOS devices only support half floats
+            // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
+            // https://stackoverflow.com/questions/13976091/floating-point-textures-in-opengl-es-2-0-on-ios-without-clamping-them-to-0-1
+            // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
+            var floatType = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? THREE.HalfFloatType : THREE.FloatType;
+
+            // Simulation speed
+            var count = 0;
+
+            // Clock for wind simulation
+            var clock = new THREE.Clock();
+
+            // Cloth size
+            var cloth_w = cloth_h = 100;
 
             // Cloth texture
-            var arrayTex = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"]
-            var randomTex = arrayTex[ Math.floor(Math.random() * arrayTex.length) ] // Random texture
-            var clothTex = new THREE.TextureLoader().load(randomTex);
-            clothTex.wrapS = clothTex.wrapT = THREE.ClampToEdgeWrapping;
-            // console.log(clothTex);
+            var clothTex = null;
 
-            shader = THREE.ShaderLib['phong'];
-            console.log(shader.uniforms);
-            console.log(shader.vertexShader);
-            console.log(shader.fragmentShader);
+            // Gui
+            var gui;
 
-            material = new THREE.ShaderMaterial({
-                uniforms: {
-                    "tex": { type: "t", value: clothTex },
-                    "map": { type: "t", value: texture },
-                    "width": { type: "f", value: cloth_w },
-                    "height": { type: "f", value: cloth_h },
-                    "camPos": { type: "v3", value: camera.position }
-                },
-                vertexShader: document.getElementById('vs-particles').textContent,
-                fragmentShader: document.getElementById('fs-particles').textContent,
-                blending: THREE.AdditiveBlending,
-                depthWrite: true,
-                depthTest: true,
-                wireframe: gui.getWireframe()
-                // transparent: true // Transparancy currently not supported
-            });
+            var geometry;
 
-            mesh = new THREE.Mesh(geometry, material);
-            mesh.scale.set(50, 50, 50);
-            scene.add(mesh);
-        }
+            var scene, camera, light, camControl, renderer;
 
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
+            var data, vtxIds, texture, points; 
 
-        window.addEventListener('resize', onWindowResize, false);
+            var fboParticles, rtTexturePos, rtTexturePos2, simulationShader;
 
-        function render() {
+            function init() {
+                container = document.createElement('div');
+                stats = new Stats();
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '10px';
+                stats.domElement.style.top = '10px';
+                container.appendChild(stats.domElement);
 
-            //console.log(camera.position);
+                document.body.appendChild(container);
 
-            stats.begin();
+                canvas = document.createElement('canvas');
 
-            // Wireframe toggle
-            material.wireframe = gui.getWireframe();
+                renderer = new THREE.WebGLRenderer({ 
+                    canvas: canvas, 
+                    context: gl,
+                    // antialias: true 
+                });
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                // renderer.sortObjects = false;
+                container.appendChild(renderer.domElement);
 
-            var ii = gui.getSimulationSpeed();
-            while(ii>0){
-                ii--;
-                simulationShader.setTimer(gui.getTimeStep());
+                scene = new THREE.Scene();
 
-                if (count > 20) simulationShader.setStart(0);
+                camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 10000);
+                camera.position.set(60, 100, 123);
+                camera.lookAt(scene.position);
 
-                // Ugly hack to make the particle mesh always draw last
-                scene.remove(mesh); scene.add(mesh);
+                camControl = new THREE.OrbitControls(camera, renderer.domElement);
 
-                simulationShader.setPositionsTexture(rtTexturePos);
-                if (count < 15) {
-                    gpgpu.initVel(simulationShader);
+                scene.add(camera);
+
+                // General lighting
+                ambientLight = new THREE.AmbientLight(0x666666); // soft white light
+                scene.add(ambientLight);
+
+                directionalLight = new THREE.DirectionalLight(0xdfebff, 0.7);
+                directionalLight.position.set(50, 200, 100);
+                directionalLight.position.multiplyScalar(1.3);
+                scene.add(directionalLight);
+
+                // Pin holder 1
+                pinHolderTextureLoader = new THREE.TextureLoader();
+                pinHolderTexture = pinHolderTextureLoader.load('textures/pin.jpg');
+                pinHolderGeometry = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
+                pinHolderMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
+                pinHolderMesh = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
+                pinHolderMesh.position.set(49.0, 50, 0.45);
+                pinHolderMesh.rotation.x = Math.PI / 2;
+                scene.add(pinHolderMesh);
+
+                // Pin holder 2
+                pinHolderGeometry2 = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
+                pinHolderMaterial2 = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
+                pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry2, pinHolderMaterial2);
+                pinHolderMesh2.position.set(0.5, 50, 0.45);
+                pinHolderMesh2.rotation.x = Math.PI / 2;
+                scene.add(pinHolderMesh2);
+                
+                // Data texture of cloth
+                data = new Float32Array(cloth_w * cloth_h * 4);
+                vtxIds = new Float32Array(cloth_w * cloth_h * 4);
+                
+                for (var i = 0, t = 0, x = 0; x < cloth_w; x++) {
+                    for (var y = 0; y < cloth_h; y++) {
+                        data[i + 0] = x * 1.0 / cloth_w;
+                        data[i + 1] = 1.0;
+                        data[i + 2] = y * 1.0 / cloth_h;
+                        data[i + 3] = 0.1;
+
+                        vtxIds[i + 0] = t;
+                        vtxIds[i + 1] = t;
+                        vtxIds[i + 2] = t;
+                        vtxIds[i + 3] = t;
+
+                        i += 4;
+                        t++;
+                    }
                 }
 
-                gpgpu.pass(simulationShader, rtTexturePos2, gui);
-                material.uniforms.map.value = rtTexturePos;
+                // https://threejs.org/docs/?q=Data#Reference/Textures/DataTexture
+                texture = new THREE.DataTexture(data, cloth_w, cloth_h, THREE.RGBAFormat, THREE.FloatType);
+                texture.needsUpdate = true;
 
-                // Ping-pong FBO's
-                var a = rtTexturePos;
-                rtTexturePos = rtTexturePos2;
-                rtTexturePos2 = a;
+                gpgpu = new GPGPU(renderer);
+                simulationShader = new GPGPU.SimulationShader();
+                simulationShader.setOriginsTexture(texture);
+                // console.log(simulationShader);
 
-                count++;
+                // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
+                // Set up an off-screen targets to render the data textures to
+                rtTexturePos = new THREE.WebGLRenderTarget(cloth_w, cloth_h, {
+                     wrapS: THREE.ClampToEdgeWrapping,
+                     wrapT: THREE.ClampToEdgeWrapping,
+                     minFilter: THREE.NearestFilter,
+                     magFilter: THREE.NearestFilter,
+                     format: THREE.RGBAFormat,
+                     type: floatType,
+                     stencilBuffer: false
+                });
+
+                // Clone the off-screen render target to allow for ping-pong FBO's
+                rtTexturePos2 = rtTexturePos.clone();
+
+                // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html
+                // Construct the geometry and faces of the cloth
+                geometry = new THREE.Geometry();
+
+                for (var i = 0, l = cloth_w * cloth_h; i < l; i++) {
+                    var vertex = new THREE.Vector3();
+                    vertex.x = (i % cloth_w) / cloth_w;
+                    vertex.y = Math.floor(i / cloth_w) / cloth_h;
+                    geometry.vertices.push(vertex);
+                }
+
+                for (var x = 0; x < cloth_w - 1; x++) {
+                    for (var y = 0; y < cloth_h - 1; y++) {
+
+                        var v0 = x + cloth_w * y;
+                        var v1 = x + cloth_w * y + cloth_h;
+
+                        geometry.faces.push(new THREE.Face3(v1 + 1, v0, v1));
+                        geometry.faces.push(new THREE.Face3(v1, v0 + 1, v0));
+                        geometry.faces.push(new THREE.Face3(v1, v1 + 1, v0 + 1));
+                        geometry.faces.push(new THREE.Face3(v0 + 1, v1, v0));
+                        geometry.faces.push(new THREE.Face3(v1 + 1, v1, v0 + 1));
+                    }
+                }
+
+                // Cloth texture
+                var arrayTex = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"]
+                var randomTex = arrayTex[ Math.floor(Math.random() * arrayTex.length) ] // Random texture
+                var clothTex = new THREE.TextureLoader().load(randomTex);
+                clothTex.wrapS = clothTex.wrapT = THREE.ClampToEdgeWrapping;
+                // console.log(clothTex);
+
+                // shader = THREE.ShaderLib['phong'];
+                // console.log(shader.uniforms);
+                // console.log(shader.vertexShader);
+                // console.log(shader.fragmentShader);
+
+                material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        "tex": { type: "t", value: clothTex },
+                        "map": { type: "t", value: texture },
+                        "width": { type: "f", value: cloth_w },
+                        "height": { type: "f", value: cloth_h },
+                        "camPos": { type: "v3", value: camera.position }
+                    },
+                    vertexShader: document.getElementById('vs-particles').textContent,
+                    fragmentShader: document.getElementById('fs-particles').textContent,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: true,
+                    depthTest: true,
+                    wireframe: gui.getWireframe()
+                    // transparent: true // Transparancy currently not supported
+                });
+
+                mesh = new THREE.Mesh(geometry, material);
+                mesh.scale.set(50, 50, 50);
+                scene.add(mesh);
             }
 
-            camControl.update();
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
 
-            renderer.render(scene, camera);
+            window.addEventListener('resize', onWindowResize, false);
 
-            stats.end();
+            function render() {
 
-            requestAnimationFrame(render);
-        }
+                //console.log(camera.position);
 
-        gui = new gui();
-        gui.init();
+                stats.begin();
 
-        init();
+                // Wireframe toggle
+                material.wireframe = gui.getWireframe();
 
-        render();
+                var ii = gui.getSimulationSpeed();
+                while(ii>0){
+                    ii--;
+                    simulationShader.setTimer(gui.getTimeStep());
 
-    </script>
-</body>
+                    if (count > 20) simulationShader.setStart(0);
+
+                    // Ugly hack to make the particle mesh always draw last
+                    scene.remove(mesh); scene.add(mesh);
+
+                    simulationShader.setPositionsTexture(rtTexturePos);
+                    if (count < 15) {
+                        gpgpu.initVel(simulationShader);
+                    }
+
+                    gpgpu.pass(simulationShader, rtTexturePos2, gui);
+                    material.uniforms.map.value = rtTexturePos;
+
+                    // Ping-pong FBO's
+                    var a = rtTexturePos;
+                    rtTexturePos = rtTexturePos2;
+                    rtTexturePos2 = a;
+
+                    count++;
+                }
+
+                camControl.update();
+
+                renderer.render(scene, camera);
+
+                stats.end();
+
+                requestAnimationFrame(render);
+            }
+
+            gui = new gui();
+            gui.init();
+
+            init();
+
+            render();
+
+        </script>
+    </body>
 </html>
