@@ -22,8 +22,8 @@
             - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole.
 
         To do:
-            - Implement GPUComputationRenderer.js instead of GPGPU.js
             - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
+            - Add mass to use Verlet integration
             - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
             - Framerate tests on various mobile devices
             - Identify and document issues regarding the camera controls on touch devices (it is not possible to both control the camera and interact with the cloth)
@@ -138,10 +138,10 @@
                 // gl_FragColor = vec4(nor ,1.0);
 
                 // Rotate the texture to correct the orientation
-                vec4 clothTex = texture2D(tex, vec2(vUv.y, 1.0 - vUv.x));
+                vec4 clothTexture = texture2D(tex, vec2(vUv.y, 1.0 - vUv.x));
 
                 // Apply lighting and texture
-                gl_FragColor = vec4(((lamb + spec + amb) * lightCol), 1.0) + clothTex;
+                gl_FragColor = vec4(((lamb + spec + amb) * lightCol), 1.0) + clothTexture;
             }
         </script>
 
@@ -164,7 +164,7 @@
             var cloth_w = cloth_h = 100;
 
             // Cloth texture
-            var clothTex = null;
+            var clothTexture = null;
 
             // Gui
             var gui;
@@ -307,11 +307,11 @@
                 }
 
                 // Cloth texture
-                var arrayTex = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"]
-                var randomTex = arrayTex[ Math.floor(Math.random() * arrayTex.length) ] // Random texture
-                var clothTex = new THREE.TextureLoader().load(randomTex);
-                clothTex.wrapS = clothTex.wrapT = THREE.ClampToEdgeWrapping;
-                // console.log(clothTex);
+                var clothTextures = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"]
+                var randomClothTexture = clothTextures[ Math.floor(Math.random() * clothTextures.length) ] // Random texture
+                var clothTexture = new THREE.TextureLoader().load(randomClothTexture);
+                clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
+                // console.log(clothTexture);
 
                 // shader = THREE.ShaderLib['phong'];
                 // console.log(shader.uniforms);
@@ -320,7 +320,7 @@
 
                 material = new THREE.ShaderMaterial({
                     uniforms: {
-                        "tex": { type: "t", value: clothTex },
+                        "tex": { type: "t", value: clothTexture },
                         "map": { type: "t", value: texture },
                         "width": { type: "f", value: cloth_w },
                         "height": { type: "f", value: cloth_h },
