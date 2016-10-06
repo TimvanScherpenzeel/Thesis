@@ -1,5 +1,5 @@
-# Thesis
-Cloth simulation in WebGL using a mass spring system, Verlet integration and ping-pong FBO's.
+# Bachelor Thesis
+Mass spring cloth simulation in WebGL using Verlet integration and ping-pong FBO's.
 
 [Live demo](https://timvanscherpenzeel.github.io/Thesis/)
 
