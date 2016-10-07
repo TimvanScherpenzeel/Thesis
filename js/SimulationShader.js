@@ -153,6 +153,7 @@ GPGPU.SimulationShader = function () {
             //             |
             //             o        
 
+            // Satisfy the constraints
             '  for (int k = 0; k < 12; k++) {',
             '    vec3 tempVel = vel.xyz;',
             '    float ks, kd;',
@@ -188,16 +189,17 @@ GPGPU.SimulationShader = function () {
             '  vec3 acc;',
             '  if(u_mass == 0.0) acc = vec3(0.0); else acc = force / u_mass;',
 
-               // Mass currently not implemented yet
-            // '  vec3 acc = force / mass + 0.5;',
-            
             '  bool pinBoolean = false;',  
             '  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
             '  if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);', // Pin 2, Top right
 
                // If the vertex is not marked as pin run the simulation
-            '  if(pinBoolean) vel.xyz = vec3(0.0); else vel.xyz += acc * timestep;',
-          
+            '  if(pinBoolean) {',
+            '    vel.xyz = vec3(0.0);',
+            '  } else {',
+            '    vel.xyz += acc * timestep;',
+            '  }',
+
             '  gl_FragColor = vec4(vel.xyz,1.0);',
             '}',
         ].join('\n'),
@@ -253,7 +255,7 @@ GPGPU.SimulationShader = function () {
           '    if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
           '    if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);', // Pin 2, Top right
 
-          '    if(pinBoolean) ; else pos.xyz += vel.xyz*timer;',
+          '    if(pinBoolean) ; else pos.xyz += vel.xyz * timer;',
           '  }',
 
           '  gl_FragColor = pos;',

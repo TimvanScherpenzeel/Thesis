@@ -1,4 +1,4 @@
-﻿!<!doctype html>
+﻿<!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
@@ -127,7 +127,7 @@
                 float lamb = max(dot(lightDir, nor), 0.0);
                 float spec = 0.0;
                 float amb = 0.2;
-                vec3 lightCol = vec3(0.1, 0.1, 0.1); // light amount and color
+                vec3 lightCol = vec3(0.1, 0.1, 0.1);
                 
                 if (lamb > 0.0) {
                     float specAngle = max(dot(reflDir, viewDir), 0.0);
@@ -186,7 +186,6 @@
                 container.appendChild(stats.domElement);
 
                 document.body.appendChild(container);
-
                 canvas = document.createElement('canvas');
 
                 renderer = new THREE.WebGLRenderer({ 
@@ -194,9 +193,9 @@
                     context: gl,
                     // antialias: true 
                 });
+
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                // renderer.sortObjects = false;
                 container.appendChild(renderer.domElement);
 
                 scene = new THREE.Scene();
@@ -210,7 +209,7 @@
                 scene.add(camera);
 
                 // General lighting
-                ambientLight = new THREE.AmbientLight(0x666666); // soft white light
+                ambientLight = new THREE.AmbientLight(0x666666);
                 scene.add(ambientLight);
 
                 directionalLight = new THREE.DirectionalLight(0xdfebff, 0.7);
@@ -218,20 +217,25 @@
                 directionalLight.position.multiplyScalar(1.3);
                 scene.add(directionalLight);
 
-                // Pin holder 1
+                // Pin holder meshes
                 pinHolderTextureLoader = new THREE.TextureLoader();
                 pinHolderTexture = pinHolderTextureLoader.load('textures/pin.jpg');
                 pinHolderGeometry = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-                pinHolderMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-                pinHolderMesh = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
-                pinHolderMesh.position.set(49.0, 50, 0.45);
-                pinHolderMesh.rotation.x = Math.PI / 2;
-                scene.add(pinHolderMesh);
+                pinHolderMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xffffff, 
+                    specular: 0x111111, 
+                    shininess: 30, 
+                    map: pinHolderTexture 
+                });
+
+                // Pin holder 1
+                pinHolderMesh1 = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
+                pinHolderMesh1.position.set(49.0, 50, 0.45);
+                pinHolderMesh1.rotation.x = Math.PI / 2;
+                scene.add(pinHolderMesh1);
 
                 // Pin holder 2
-                pinHolderGeometry2 = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-                pinHolderMaterial2 = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-                pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry2, pinHolderMaterial2);
+                pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
                 pinHolderMesh2.position.set(0.5, 50, 0.45);
                 pinHolderMesh2.rotation.x = Math.PI / 2;
                 scene.add(pinHolderMesh2);

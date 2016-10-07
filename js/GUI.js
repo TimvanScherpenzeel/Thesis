@@ -15,7 +15,7 @@ var gui = function () {
         "Kd Shear": KdSpringAmount,
         "Kd Bend": KdSpringAmount,
         "Damping": DampingAmount,
-        "Mass": 0.5,
+        "Mass": 1.0,
         "Wireframe": false,
 
         "Wind": true,
