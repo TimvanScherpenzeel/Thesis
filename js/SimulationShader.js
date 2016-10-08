@@ -126,9 +126,10 @@ GPGPU.SimulationShader = function () {
             '  vec4 pos = texture2D(tPositions, vUv);',
             '  vec4 vel =  texture2D(tVelocity, vUv);',
 
-            // Set gravitational force
+            // Set a constant gravitational force
             '  vec3 gravity = vec3(0.0, -9.8 * 0.1, 0.0);',
 
+            // Set the gravity as a constant base force (simplified)
             '  vec3 force = gravity;',
 
             // Add damping
@@ -176,16 +177,17 @@ GPGPU.SimulationShader = function () {
                  // Calculate the velocity and change in position and velocity
             '    vec3 posNeighborParticle = texture2D(tPositions, newCoord).xyz;',
             '    vec3 velNeighborParticle = texture2D(tVelocity, newCoord).xyz;',
-            '    vec3 deltaP = pos.xyz - posNeighborParticle;',
-            '    tempVel += deltaP;',
-            '    vec3 deltaV = tempVel - velNeighborParticle;',
-            '    float distance = length(deltaP);',
+            '    vec3 deltaPos = pos.xyz - posNeighborParticle;',
+            '    tempVel += deltaPos;',
+            '    vec3 deltaVel = tempVel - velNeighborParticle;',
+            '    float distance = length(deltaPos);',
 
                  // Calculate the spring force
-            '    vec3 springForce = (-ks * (distance - restLength) + kd * (dot(deltaV, deltaP) / distance)) * normalize(deltaP);',
+            '    vec3 springForce = (-ks * (distance - restLength) + kd * (dot(deltaVel, deltaPos) / distance)) * normalize(deltaPos);',
             '    force += springForce;',
             '  };',
 
+               // Calculate the acceleration using Newtons second law of motion: a = F / m
             '  vec3 acc;',
             '  if(u_mass == 0.0) acc = vec3(0.0); else acc = force / u_mass;',
 
@@ -197,18 +199,24 @@ GPGPU.SimulationShader = function () {
             '  if(pinBoolean) {',
             '    vel.xyz = vec3(0.0);',
             '  } else {',
+
+                 // Euler method is broken up into two parts: 
+                 // 1. VelocityNew = VelocityCurrent + Acceleration * Timestep
+                 // 2. PositionNew = PositionCurrent + VelocityNew * Timestep
+
+                 // First part of the Euler method
             '    vel.xyz += acc * timestep;',
             '  }',
 
+               // Set the new velocity of the particle
             '  gl_FragColor = vec4(vel.xyz,1.0);',
             '}',
         ].join('\n'),
     });
 
-    var material = new THREE.ShaderMaterial({
+    var updatePosMat = new THREE.ShaderMaterial({
 
         uniforms: {
-            cloth_w: { type: "f", value: 100.0 },
             tVelocity: { type: "t", value: texture },
             tPositions: { type: "t", value: texture },
             origin: { type: "t", value: texture },
@@ -232,7 +240,6 @@ GPGPU.SimulationShader = function () {
           'precision highp float;',
           'varying vec2 vUv;',
 
-          'uniform float cloth_w;',
           'uniform sampler2D tVelocity;',
           'uniform sampler2D tPositions;',
 
@@ -251,11 +258,15 @@ GPGPU.SimulationShader = function () {
           '    pos = vec4(texture2D(origin, vUv).xyz, 0.1);',
           '  } else {',
           '    bool pinBoolean = false;',
-               
           '    if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
           '    if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);', // Pin 2, Top right
 
-          '    if(pinBoolean) ; else pos.xyz += vel.xyz * timer;',
+          '    if(! pinBoolean) {',
+
+                 // Second part of the Euler method
+          '      pos.xyz += vel.xyz * timer;',
+          '    }',
+
           '  }',
 
           '  gl_FragColor = pos;',
@@ -269,10 +280,10 @@ GPGPU.SimulationShader = function () {
 
         updateVelMat: updateVelMat,
 
-        material: material,
+        updatePosMat: updatePosMat,
 
         setGUISettings: function (gui) {
-            material.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
+            updatePosMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
             updateVelMat.uniforms.timestep.value = gui.getTimeStep();
             updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsString(), -gui.getKdString());
             updateVelMat.uniforms.Shr.value = new THREE.Vector2(gui.getKsShear(), -gui.getKdShear());
@@ -287,28 +298,28 @@ GPGPU.SimulationShader = function () {
         },
 
         setPositionsTexture: function (positions) {           
-            material.uniforms.tPositions.value = positions;
+            updatePosMat.uniforms.tPositions.value = positions;
             updateVelMat.uniforms.tPositions.value = positions;
             return this;
         },
 
         setVelocityTexture: function (velocities) {
-            material.uniforms.tVelocity.value = velocities;
+            updatePosMat.uniforms.tVelocity.value = velocities;
             return this;
         },
 
         setOriginsTexture: function (origins) {
-            material.uniforms.origin.value = origins;
+            updatePosMat.uniforms.origin.value = origins;
             return this;
         },
 
         setTimer: function (timer) {
-            material.uniforms.timer.value = timer;
+            updatePosMat.uniforms.timer.value = timer;
             return this;
         },
 
         setStart: function (isStart) {
-            material.uniforms.isStart.value = isStart;
+            updatePosMat.uniforms.isStart.value = isStart;
             return this;
         },
 

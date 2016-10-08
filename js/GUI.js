@@ -106,6 +106,7 @@ var gui = function () {
         controls.gui = new dat.GUI();
 
         var simulationSettings = controls.gui.addFolder('Simulation settings');
+        simulationSettings.add(controls, "Time Step");
         simulationSettings.add(controls, "Ks Struct");
         simulationSettings.add(controls, "Ks Shear");
         simulationSettings.add(controls, "Ks Bend");

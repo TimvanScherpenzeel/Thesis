@@ -14,6 +14,7 @@
         <script src="js/GUI.js"></script>
         <script src="js/GPGPU.js"></script>
         <script src="js/SimulationShader.js"></script>
+        <script src="js/ClothShader.js"></script>
     </head>
     <body>
         <!--
@@ -22,7 +23,6 @@
             - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole.
 
         To do:
-            - Add mass to use Verlet integration
             - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
             - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
             - Framerate tests on various mobile devices
@@ -30,11 +30,10 @@
 
 
         Would like to implement:
-            - Look at implementing particle mass (difficulty, approach?)
+            - Look at implementing actual particle mass
             - Look at implementing rigid body physics
             - Look at raycasting to add interactivity to the cloth
             - Look at how to raycast an area, not a single vertex
-            - Look at border issues of cloth
             - Look at cloth collisions with other objects (z-fighting / clipping issues)
         -->
 
@@ -240,7 +239,8 @@
                 pinHolderMesh2.rotation.x = Math.PI / 2;
                 scene.add(pinHolderMesh2);
                 
-                // Data texture of cloth
+                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+                // Construct the data arrays of cloth in typed array views (R,G,B,A)
                 data = new Float32Array(cloth_w * cloth_h * 4);
                 vtxIds = new Float32Array(cloth_w * cloth_h * 4);
                 
@@ -317,12 +317,16 @@
                 clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
                 // console.log(clothTexture);
 
-                // shader = THREE.ShaderLib['phong'];
-                // console.log(shader.uniforms);
-                // console.log(shader.vertexShader);
-                // console.log(shader.fragmentShader);
+                phongShader = THREE.ShaderLib['phong'];
+                console.log(phongShader);
+                // console.log(phongShader.uniforms);
+                // console.log(phongShader.vertexShader + document.getElementById('vs-particles').textContent);
+                // console.log(phongShader.fragmentShader);
 
-                material = new THREE.ShaderMaterial({
+                console.log(ClothShader);
+
+                clothMaterial = new THREE.ShaderMaterial({
+
                     uniforms: {
                         "tex": { type: "t", value: clothTexture },
                         "map": { type: "t", value: texture },
@@ -336,10 +340,27 @@
                     depthWrite: true,
                     depthTest: true,
                     wireframe: gui.getWireframe()
-                    // transparent: true // Transparancy currently not supported
+
+                    // uniforms: THREE.UniformsUtils.merge([
+                    // phongShader.uniforms,
+                    // {
+                    //     "tex": { type: "t", value: clothTexture },
+                    //     "map": { type: "t", value: texture },
+                    //     "width": { type: "f", value: cloth_w },
+                    //     "height": { type: "f", value: cloth_h },
+                    //     "camPos": { type: "v3", value: camera.position }
+                    // }]),
+                    // vertexShader: ClothShader.clothMat.vertexShader,
+                    // fragmentShader: ClothShader.clothMat.fragmentShader,
+                    // blending: THREE.AdditiveBlending,
+                    // depthWrite: true,
+                    // depthTest: true,
+                    // wireframe: gui.getWireframe()
                 });
 
-                mesh = new THREE.Mesh(geometry, material);
+                console.log(clothMaterial);
+
+                mesh = new THREE.Mesh(geometry, clothMaterial);
                 mesh.scale.set(50, 50, 50);
                 scene.add(mesh);
             }
@@ -359,25 +380,28 @@
                 stats.begin();
 
                 // Wireframe toggle
-                material.wireframe = gui.getWireframe();
+                clothMaterial.wireframe = gui.getWireframe();
 
-                var ii = gui.getSimulationSpeed();
-                while(ii>0){
-                    ii--;
+                var i = gui.getSimulationSpeed();
+                
+                while(i > 0){
+                    i--;
+
                     simulationShader.setTimer(gui.getTimeStep());
 
-                    if (count > 20) simulationShader.setStart(0);
-
-                    // Ugly hack to make the particle mesh always draw last
-                    scene.remove(mesh); scene.add(mesh);
-
+                    // set the current positions 
                     simulationShader.setPositionsTexture(rtTexturePos);
+
                     if (count < 15) {
                         gpgpu.initVel(simulationShader);
                     }
 
+                    if (count > 20) {
+                        simulationShader.setStart(0);
+                    }
+
                     gpgpu.pass(simulationShader, rtTexturePos2, gui);
-                    material.uniforms.map.value = rtTexturePos;
+                    clothMaterial.uniforms.map.value = rtTexturePos;
 
                     // Ping-pong FBO's
                     var a = rtTexturePos;
