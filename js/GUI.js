@@ -15,7 +15,7 @@ var gui = function () {
         "Kd Shear": KdSpringAmount,
         "Kd Bend": KdSpringAmount,
         "Damping": DampingAmount,
-        "Mass": 0.5,
+        "Mass": 1.0,
         "Wireframe": false,
 
         "Wind": true,
@@ -106,6 +106,7 @@ var gui = function () {
         controls.gui = new dat.GUI();
 
         var simulationSettings = controls.gui.addFolder('Simulation settings');
+        simulationSettings.add(controls, "Time Step");
         simulationSettings.add(controls, "Ks Struct");
         simulationSettings.add(controls, "Ks Shear");
         simulationSettings.add(controls, "Ks Bend");

@@ -38,7 +38,7 @@ var GPGPU = function (renderer) {
         renderer.render(scene, camera, velTexture, false);
 
         shader.setVelocityTexture(velTexture);
-        mesh.material = shader.material;
+        mesh.material = shader.updatePosMat;
         renderer.render(scene, camera, target, false);
 
         var a = velTexture;

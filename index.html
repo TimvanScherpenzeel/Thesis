@@ -1,4 +1,4 @@
-﻿!<!doctype html>
+﻿<!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
@@ -14,6 +14,7 @@
         <script src="js/GUI.js"></script>
         <script src="js/GPGPU.js"></script>
         <script src="js/SimulationShader.js"></script>
+        <script src="js/ClothShader.js"></script>
     </head>
     <body>
         <!--
@@ -22,7 +23,6 @@
             - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole.
 
         To do:
-            - Add mass to use Verlet integration
             - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
             - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
             - Framerate tests on various mobile devices
@@ -30,11 +30,10 @@
 
 
         Would like to implement:
-            - Look at implementing particle mass (difficulty, approach?)
+            - Look at implementing actual particle mass
             - Look at implementing rigid body physics
             - Look at raycasting to add interactivity to the cloth
             - Look at how to raycast an area, not a single vertex
-            - Look at border issues of cloth
             - Look at cloth collisions with other objects (z-fighting / clipping issues)
         -->
 
@@ -127,7 +126,7 @@
                 float lamb = max(dot(lightDir, nor), 0.0);
                 float spec = 0.0;
                 float amb = 0.2;
-                vec3 lightCol = vec3(0.1, 0.1, 0.1); // light amount and color
+                vec3 lightCol = vec3(0.1, 0.1, 0.1);
                 
                 if (lamb > 0.0) {
                     float specAngle = max(dot(reflDir, viewDir), 0.0);
@@ -186,7 +185,6 @@
                 container.appendChild(stats.domElement);
 
                 document.body.appendChild(container);
-
                 canvas = document.createElement('canvas');
 
                 renderer = new THREE.WebGLRenderer({ 
@@ -194,9 +192,9 @@
                     context: gl,
                     // antialias: true 
                 });
+
                 renderer.setPixelRatio(window.devicePixelRatio);
                 renderer.setSize(window.innerWidth, window.innerHeight);
-                // renderer.sortObjects = false;
                 container.appendChild(renderer.domElement);
 
                 scene = new THREE.Scene();
@@ -210,7 +208,7 @@
                 scene.add(camera);
 
                 // General lighting
-                ambientLight = new THREE.AmbientLight(0x666666); // soft white light
+                ambientLight = new THREE.AmbientLight(0x666666);
                 scene.add(ambientLight);
 
                 directionalLight = new THREE.DirectionalLight(0xdfebff, 0.7);
@@ -218,25 +216,31 @@
                 directionalLight.position.multiplyScalar(1.3);
                 scene.add(directionalLight);
 
-                // Pin holder 1
+                // Pin holder meshes
                 pinHolderTextureLoader = new THREE.TextureLoader();
                 pinHolderTexture = pinHolderTextureLoader.load('textures/pin.jpg');
                 pinHolderGeometry = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-                pinHolderMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-                pinHolderMesh = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
-                pinHolderMesh.position.set(49.0, 50, 0.45);
-                pinHolderMesh.rotation.x = Math.PI / 2;
-                scene.add(pinHolderMesh);
+                pinHolderMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xffffff, 
+                    specular: 0x111111, 
+                    shininess: 30, 
+                    map: pinHolderTexture 
+                });
+
+                // Pin holder 1
+                pinHolderMesh1 = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
+                pinHolderMesh1.position.set(49.0, 50, 0.45);
+                pinHolderMesh1.rotation.x = Math.PI / 2;
+                scene.add(pinHolderMesh1);
 
                 // Pin holder 2
-                pinHolderGeometry2 = new THREE.CylinderGeometry(0.45, 0.55, 1.35, 32);
-                pinHolderMaterial2 = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 40, map: pinHolderTexture });
-                pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry2, pinHolderMaterial2);
+                pinHolderMesh2 = new THREE.Mesh(pinHolderGeometry, pinHolderMaterial);
                 pinHolderMesh2.position.set(0.5, 50, 0.45);
                 pinHolderMesh2.rotation.x = Math.PI / 2;
                 scene.add(pinHolderMesh2);
                 
-                // Data texture of cloth
+                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+                // Construct the data arrays of cloth in typed array views (R,G,B,A)
                 data = new Float32Array(cloth_w * cloth_h * 4);
                 vtxIds = new Float32Array(cloth_w * cloth_h * 4);
                 
@@ -313,12 +317,16 @@
                 clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
                 // console.log(clothTexture);
 
-                // shader = THREE.ShaderLib['phong'];
-                // console.log(shader.uniforms);
-                // console.log(shader.vertexShader);
-                // console.log(shader.fragmentShader);
+                phongShader = THREE.ShaderLib['phong'];
+                console.log(phongShader);
+                // console.log(phongShader.uniforms);
+                // console.log(phongShader.vertexShader + document.getElementById('vs-particles').textContent);
+                // console.log(phongShader.fragmentShader);
 
-                material = new THREE.ShaderMaterial({
+                console.log(ClothShader);
+
+                clothMaterial = new THREE.ShaderMaterial({
+
                     uniforms: {
                         "tex": { type: "t", value: clothTexture },
                         "map": { type: "t", value: texture },
@@ -332,10 +340,27 @@
                     depthWrite: true,
                     depthTest: true,
                     wireframe: gui.getWireframe()
-                    // transparent: true // Transparancy currently not supported
+
+                    // uniforms: THREE.UniformsUtils.merge([
+                    // phongShader.uniforms,
+                    // {
+                    //     "tex": { type: "t", value: clothTexture },
+                    //     "map": { type: "t", value: texture },
+                    //     "width": { type: "f", value: cloth_w },
+                    //     "height": { type: "f", value: cloth_h },
+                    //     "camPos": { type: "v3", value: camera.position }
+                    // }]),
+                    // vertexShader: ClothShader.clothMat.vertexShader,
+                    // fragmentShader: ClothShader.clothMat.fragmentShader,
+                    // blending: THREE.AdditiveBlending,
+                    // depthWrite: true,
+                    // depthTest: true,
+                    // wireframe: gui.getWireframe()
                 });
 
-                mesh = new THREE.Mesh(geometry, material);
+                console.log(clothMaterial);
+
+                mesh = new THREE.Mesh(geometry, clothMaterial);
                 mesh.scale.set(50, 50, 50);
                 scene.add(mesh);
             }
@@ -355,25 +380,28 @@
                 stats.begin();
 
                 // Wireframe toggle
-                material.wireframe = gui.getWireframe();
+                clothMaterial.wireframe = gui.getWireframe();
 
-                var ii = gui.getSimulationSpeed();
-                while(ii>0){
-                    ii--;
+                var i = gui.getSimulationSpeed();
+                
+                while(i > 0){
+                    i--;
+
                     simulationShader.setTimer(gui.getTimeStep());
 
-                    if (count > 20) simulationShader.setStart(0);
-
-                    // Ugly hack to make the particle mesh always draw last
-                    scene.remove(mesh); scene.add(mesh);
-
+                    // set the current positions 
                     simulationShader.setPositionsTexture(rtTexturePos);
+
                     if (count < 15) {
                         gpgpu.initVel(simulationShader);
                     }
 
+                    if (count > 20) {
+                        simulationShader.setStart(0);
+                    }
+
                     gpgpu.pass(simulationShader, rtTexturePos2, gui);
-                    material.uniforms.map.value = rtTexturePos;
+                    clothMaterial.uniforms.map.value = rtTexturePos;
 
                     // Ping-pong FBO's
                     var a = rtTexturePos;
