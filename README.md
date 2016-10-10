@@ -1,5 +1,5 @@
 # Bachelor Thesis
-Mass spring cloth simulation in WebGL using the Euler method and ping-pong FBO's.
+Mass spring cloth simulation in WebGL using semi-implicit Euler and ping-pong FBO's.
 
 [Live demo](https://timvanscherpenzeel.github.io/Thesis/)
 

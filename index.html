@@ -23,14 +23,15 @@
             - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole.
 
         To do:
-            - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
             - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
             - Framerate tests on various mobile devices
             - Identify and document issues regarding the camera controls on touch devices (it is not possible to both control the camera and interact with the cloth)
 
 
         Would like to implement:
+            - Add lighting to backside of the cloth (implement a phong shaderchunk instead of custom lighting)
             - Look at implementing actual particle mass
+            - Makes the pins move when repinned or removed
             - Look at implementing rigid body physics
             - Look at raycasting to add interactivity to the cloth
             - Look at how to raycast an area, not a single vertex
@@ -268,7 +269,6 @@
                 gpgpu = new GPGPU(renderer);
                 simulationShader = new GPGPU.SimulationShader();
                 simulationShader.setOriginsTexture(texture);
-                // console.log(simulationShader);
 
                 // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
                 // Set up an off-screen targets to render the data textures to
@@ -311,22 +311,12 @@
                 }
 
                 // Cloth texture
-                var clothTextures = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"]
-                var randomClothTexture = clothTextures[ Math.floor(Math.random() * clothTextures.length) ] // Random texture
+                var clothTextures = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"];
+                var randomClothTexture = clothTextures[ Math.floor(Math.random() * clothTextures.length) ];
                 var clothTexture = new THREE.TextureLoader().load(randomClothTexture);
                 clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
-                // console.log(clothTexture);
-
-                phongShader = THREE.ShaderLib['phong'];
-                console.log(phongShader);
-                // console.log(phongShader.uniforms);
-                // console.log(phongShader.vertexShader + document.getElementById('vs-particles').textContent);
-                // console.log(phongShader.fragmentShader);
-
-                console.log(ClothShader);
 
                 clothMaterial = new THREE.ShaderMaterial({
-
                     uniforms: {
                         "tex": { type: "t", value: clothTexture },
                         "map": { type: "t", value: texture },
@@ -340,25 +330,7 @@
                     depthWrite: true,
                     depthTest: true,
                     wireframe: gui.getWireframe()
-
-                    // uniforms: THREE.UniformsUtils.merge([
-                    // phongShader.uniforms,
-                    // {
-                    //     "tex": { type: "t", value: clothTexture },
-                    //     "map": { type: "t", value: texture },
-                    //     "width": { type: "f", value: cloth_w },
-                    //     "height": { type: "f", value: cloth_h },
-                    //     "camPos": { type: "v3", value: camera.position }
-                    // }]),
-                    // vertexShader: ClothShader.clothMat.vertexShader,
-                    // fragmentShader: ClothShader.clothMat.fragmentShader,
-                    // blending: THREE.AdditiveBlending,
-                    // depthWrite: true,
-                    // depthTest: true,
-                    // wireframe: gui.getWireframe()
                 });
-
-                console.log(clothMaterial);
 
                 mesh = new THREE.Mesh(geometry, clothMaterial);
                 mesh.scale.set(50, 50, 50);

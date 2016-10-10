@@ -8,14 +8,12 @@ GPGPU.SimulationShader = function () {
     
     var initVelMat = new THREE.ShaderMaterial({
         vertexShader: [
-          'precision highp float;',
           'void main() {',
           '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
           '}',
         ].join('\n'),
 
         fragmentShader: [
-          'precision highp float;',
           'void main() {',
           '  gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);',
           '}',
@@ -41,7 +39,6 @@ GPGPU.SimulationShader = function () {
         },
 
         vertexShader: [
-            'precision highp float;',
             'varying vec2 vUv;',
             'void main() {',
             '  vUv = uv.xy;',
@@ -50,7 +47,6 @@ GPGPU.SimulationShader = function () {
         ].join('\n'),
 
         fragmentShader: [
-            'precision highp float;',
             'varying vec2 vUv;',
             'uniform float cloth_w;',
             'uniform sampler2D tVelocity;',  
@@ -130,13 +126,12 @@ GPGPU.SimulationShader = function () {
             '  vec3 gravity = vec3(0.0, -9.8 * 0.1, 0.0);',
 
             // Set the gravity as a constant base force (simplified)
-            '  vec3 force = gravity;',
+            '  vec3 force = gravity * u_mass;',
 
             // Add damping
-            // '  vec3 force = gravity * mass.xyz + vel.xyz * -u_damping;', // Mass currently not implemented yet
             '  force += -u_damping * vel.xyz;',
 
-            // Wind simulation
+            // Wind simulation (add 10 to not have the cloth be instantly blocked on initialization )
             '  force.x += u_windX * sin(u_time + 10.0);',
             '  force.y += u_windY * cos(u_time + 10.0);',
             '  force.z += u_windZ * sin(u_time + 10.0);',
@@ -200,11 +195,11 @@ GPGPU.SimulationShader = function () {
             '    vel.xyz = vec3(0.0);',
             '  } else {',
 
-                 // Euler method is broken up into two parts: 
-                 // 1. VelocityNew = VelocityCurrent + Acceleration * Timestep
-                 // 2. PositionNew = PositionCurrent + VelocityNew * Timestep
+                 // Euler's semi-implicit method is broken up into two steps:
+                 // 1. VelocityNew = VelocityCurrent -> VelocityNew += Acceleration * Timestep
+                 // 2. PositionNew = PositionCurrent -> PositionNew += VelocityNew * Timestep 
 
-                 // First part of the Euler method
+                 // First part of semi-implicit Euler's method
             '    vel.xyz += acc * timestep;',
             '  }',
 
@@ -227,7 +222,6 @@ GPGPU.SimulationShader = function () {
         },
 
         vertexShader: [
-          'precision highp float;',
           'varying vec2 vUv;',
 
           'void main() {',
@@ -237,7 +231,6 @@ GPGPU.SimulationShader = function () {
         ].join('\n'),
 
         fragmentShader: [
-          'precision highp float;',
           'varying vec2 vUv;',
 
           'uniform sampler2D tVelocity;',
@@ -263,13 +256,14 @@ GPGPU.SimulationShader = function () {
 
           '    if(! pinBoolean) {',
 
-                 // Second part of the Euler method
+                 // Second part of semi-implicit Euler's method
           '      pos.xyz += vel.xyz * timer;',
           '    }',
 
           '  }',
 
-          '  gl_FragColor = pos;',
+             // Set the new velocity of the particle
+          '  gl_FragColor = vec4(pos.xyz,1.0);',
           '}',
         ].join('\n'),
     });
