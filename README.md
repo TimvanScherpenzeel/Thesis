@@ -15,6 +15,8 @@ Known supported devices:
 Known unsupported devices:
 - Samsung Galaxy S7 Edge (2016)
 
+Images are soon to be updated the latest versions.
+
 &nbsp;
 
 ![1.jpg](/screenshots/1.jpg?raw=true)

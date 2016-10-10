@@ -15,7 +15,7 @@ var gui = function () {
         "Kd Shear": KdSpringAmount,
         "Kd Bend": KdSpringAmount,
         "Damping": DampingAmount,
-        "Mass": 1.0,
+        "Mass": 0.65, // average weight of a Hermes scarf
         "Wireframe": false,
 
         "Wind": true,

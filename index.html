@@ -375,10 +375,10 @@
                     gpgpu.pass(simulationShader, rtTexturePos2, gui);
                     clothMaterial.uniforms.map.value = rtTexturePos;
 
-                    // Ping-pong FBO's
-                    var a = rtTexturePos;
+                    // Switch the reference to the FBO's to ping-pong
+                    var buffer = rtTexturePos;
                     rtTexturePos = rtTexturePos2;
-                    rtTexturePos2 = a;
+                    rtTexturePos2 = buffer;
 
                     count++;
                 }
