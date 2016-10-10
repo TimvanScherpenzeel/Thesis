@@ -131,7 +131,7 @@ GPGPU.SimulationShader = function () {
             // Add damping
             '  force += -u_damping * vel.xyz;',
 
-            // Wind simulation
+            // Wind simulation (add 10 to not have the cloth be instantly blocked on initialization )
             '  force.x += u_windX * sin(u_time + 10.0);',
             '  force.y += u_windY * cos(u_time + 10.0);',
             '  force.z += u_windZ * sin(u_time + 10.0);',
@@ -195,11 +195,11 @@ GPGPU.SimulationShader = function () {
             '    vel.xyz = vec3(0.0);',
             '  } else {',
 
-                 // Euler method is broken up into two steps:
+                 // Euler's semi-implicit method is broken up into two steps:
                  // 1. VelocityNew = VelocityCurrent -> VelocityNew += Acceleration * Timestep
                  // 2. PositionNew = PositionCurrent -> PositionNew += VelocityNew * Timestep 
 
-                 // First part of Euler's method
+                 // First part of semi-implicit Euler's method
             '    vel.xyz += acc * timestep;',
             '  }',
 
@@ -256,7 +256,7 @@ GPGPU.SimulationShader = function () {
 
           '    if(! pinBoolean) {',
 
-                 // Second part of Euler's method
+                 // Second part of semi-implicit Euler's method
           '      pos.xyz += vel.xyz * timer;',
           '    }',
 
