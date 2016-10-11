@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>WebGL reporting tool</title>
+    </head>
+    <body>
+    	<style>
+    		li {
+    			list-style: none;
+    		}
+    	</style> 
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r81/three.min.js"></script>
+        <script>
+        	(function(){
+        		// Test if the browser understands what WebGL is
+				if (!window.WebGLRenderingContext) {
+					window.location = "http://get.webgl.org";
+				} else {
+					gl = document.createElement("canvas").getContext("webgl");
+					
+					// Check if the context can be created
+					if (!gl) {
+						window.location = "http://get.webgl.org/troubleshooting";	
+					}
+				}
+
+				console.log(navigator);
+
+				document.write('Device information:');
+				document.write('<ul>');
+				document.write('<li>' + 'User agent: ' + navigator.userAgent + '</li>');
+				document.write('</ul>');
+
+				document.write('Examples:');
+				document.write('<ul>');
+				document.write('<li><a href="https://timvanscherpenzeel.github.io/Thesis">' + 'Cloth simulation' + '</a></li>');
+				document.write('</ul>');
+
+        		// Reported general supported extensions
+        		gl_general_supported_extensions = gl.getSupportedExtensions();
+        		document.write('WebGL supported extensions:')
+        		document.write('<ul>');
+        		for (var i = 0; i < gl_general_supported_extensions.length; i++) {
+        			document.write('<li>' + gl_general_supported_extensions[i] + '</li>');
+        		}
+        		document.write('</ul>');
+
+        		var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        		console.log(debugInfo);
+        	})();
+
+        	// Why does the half float of THREE.js work?
+        </script>
+    </body>
+</html>
