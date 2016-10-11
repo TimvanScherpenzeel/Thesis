@@ -34,6 +34,13 @@
 				document.write('<li>' + 'User agent: ' + navigator.userAgent + '</li>');
 				document.write('</ul>');
 
+                document.write('Testing tools:');
+                document.write('<ul>');
+                document.write('<li><a href="https://chrome.google.com/webstore/detail/webgl-inspector/ogkcjmbhnfmlnielkjhedpcjomeaghda">' + 'WebGL inspector' + '</a></li>');
+                document.write('<li><a href="http://webglreport.com/">' + 'WebGL report' + '</a></li>');
+                document.write('<li><a href=" http://webglstats.com/">' + 'WebGL global usage stats' + '</a></li>');
+                document.write('</ul>');
+
 				document.write('Examples:');
 				document.write('<ul>');
 				document.write('<li><a href="https://timvanscherpenzeel.github.io/Thesis">' + 'Cloth simulation' + '</a></li>');
@@ -47,12 +54,12 @@
         			document.write('<li>' + gl_general_supported_extensions[i] + '</li>');
         		}
         		document.write('</ul>');
-
-        		var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        		console.log(debugInfo);
         	})();
 
-        	// Why does the half float of THREE.js work?
+            // Not reported properly even though the hardware supports it
+
+            // WEBGL_color_buffer_float;
+            // EXT_color_buffer_float
         </script>
     </body>
 </html>
