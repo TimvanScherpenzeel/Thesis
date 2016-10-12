@@ -41,9 +41,10 @@ var GPGPU = function (renderer) {
         mesh.material = shader.updatePosMat;
         renderer.render(scene, camera, target, false);
 
-        var a = velTexture;
+        // Switch the reference pointers to the velocity FBO to ping-pong
+        var buffer = velTexture;
         velTexture = prevVelTexture;
-        prevVelTexture = a;
+        prevVelTexture = buffer;
        
     };
 };

@@ -142,9 +142,9 @@ GPGPU.SimulationShader = function () {
             //             o        
             //             | 
             //         o---o---o    
-            //         |   |   |
+            //         | \ | / |
             //     o---o---m---o---o
-            //         |   |   |
+            //         | / | \ |
             //         o---o---o    
             //             |
             //             o        
@@ -190,7 +190,7 @@ GPGPU.SimulationShader = function () {
             '  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);', //Pin 1, Top left
             '  if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);', // Pin 2, Top right
 
-               // If the vertex is not marked as pin run the simulation
+               // If the vertex is within the declared pin area make sure to fixate the position
             '  if(pinBoolean) {',
             '    vel.xyz = vec3(0.0);',
             '  } else {',

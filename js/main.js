@@ -82,7 +82,7 @@ function init () {
             data[i + 0] = x * 1.0 / clothWidth;
             data[i + 1] = 1.0;
             data[i + 2] = y * 1.0 / clothHeight;
-            data[i + 3] = 0.1;
+            data[i + 3] = 1.0;
             i += 4;
         }
     }
@@ -157,8 +157,13 @@ function init () {
         wireframe: gui.getWireframe()
     });
 
+    // Combine the geometry and clothMaterial to form a mesh
     mesh = new THREE.Mesh(geometry, clothMaterial);
+
+    // Scale the mesh as a whole
     mesh.scale.set(50, 50, 50);
+
+    // Add the mesh to the scene
     scene.add(mesh);
 }
 
@@ -200,7 +205,7 @@ function render () {
         gpgpu.pass(simulationShader, rtTexturePos2, gui);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
-        // Switch the reference to the FBO's to ping-pong
+        // Switch the reference pointers to the position FBO to ping-pong
         var buffer = rtTexturePos;
         rtTexturePos = rtTexturePos2;
         rtTexturePos2 = buffer;
