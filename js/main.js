@@ -1,4 +1,11 @@
-var container, canvas, gl,stats;
+// Cloth size
+var cloth_w = cloth_h = 100;
+
+// Clock for wind simulation
+var clock = new THREE.Clock();
+
+// Simulation count
+var count = 0;
 
 // iOS devices only support half floats
 // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
@@ -6,27 +13,7 @@ var container, canvas, gl,stats;
 // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
 var floatType = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? THREE.HalfFloatType : THREE.FloatType;
 
-// Simulation count
-var count = 0;
-
-// Clock for wind simulation
-var clock = new THREE.Clock();
-
-// Cloth size
-var cloth_w = cloth_h = 100;
-
-// GUI
-var gui;
-
-var geometry;
-
-var scene, camera, light, camControl, renderer;
-
-var data, vtxIds, texture, points; 
-
-var fboParticles, rtTexturePos, rtTexturePos2, simulationShader;
-
-function init() {
+function init () {
     container = document.createElement('div');
     stats = new Stats();
     stats.domElement.style.position = 'absolute';
@@ -39,8 +26,6 @@ function init() {
 
     renderer = new THREE.WebGLRenderer({ 
         canvas: canvas, 
-        context: gl,
-        // antialias: true 
     });
 
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -91,23 +76,14 @@ function init() {
     
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
     // Construct the data arrays of cloth in typed array views (R,G,B,A)
-    data = new Float32Array(cloth_w * cloth_h * 4);
-    vtxIds = new Float32Array(cloth_w * cloth_h * 4);
-    
+    data = new Float32Array(cloth_w * cloth_h * 4);  
     for (var i = 0, t = 0, x = 0; x < cloth_w; x++) {
         for (var y = 0; y < cloth_h; y++) {
             data[i + 0] = x * 1.0 / cloth_w;
             data[i + 1] = 1.0;
             data[i + 2] = y * 1.0 / cloth_h;
             data[i + 3] = 0.1;
-
-            vtxIds[i + 0] = t;
-            vtxIds[i + 1] = t;
-            vtxIds[i + 2] = t;
-            vtxIds[i + 3] = t;
-
             i += 4;
-            t++;
         }
     }
 
@@ -186,7 +162,7 @@ function init() {
     scene.add(mesh);
 }
 
-function onWindowResize() {
+function onWindowResize () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -194,7 +170,7 @@ function onWindowResize() {
 
 window.addEventListener('resize', onWindowResize, false);
 
-function render() {
+function render () {
 
     //console.log(camera.position);
 
