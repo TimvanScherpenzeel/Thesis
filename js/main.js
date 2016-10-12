@@ -1,5 +1,5 @@
 // Cloth size
-var cloth_w = cloth_h = 100;
+var clothWidth = clothHeight = 100;
 
 // Clock for wind simulation
 var clock = new THREE.Clock();
@@ -76,19 +76,19 @@ function init () {
     
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
     // Construct the data arrays of cloth in typed array views (R,G,B,A)
-    data = new Float32Array(cloth_w * cloth_h * 4);  
-    for (var i = 0, t = 0, x = 0; x < cloth_w; x++) {
-        for (var y = 0; y < cloth_h; y++) {
-            data[i + 0] = x * 1.0 / cloth_w;
+    data = new Float32Array(clothWidth * clothHeight * 4);  
+    for (var i = 0, t = 0, x = 0; x < clothWidth; x++) {
+        for (var y = 0; y < clothHeight; y++) {
+            data[i + 0] = x * 1.0 / clothWidth;
             data[i + 1] = 1.0;
-            data[i + 2] = y * 1.0 / cloth_h;
-            data[i + 3] = 0.1;
+            data[i + 2] = y * 1.0 / clothHeight;
+            data[i + 3] = 1.0;
             i += 4;
         }
     }
 
     // https://threejs.org/docs/?q=Data#Reference/Textures/DataTexture
-    texture = new THREE.DataTexture(data, cloth_w, cloth_h, THREE.RGBAFormat, THREE.FloatType);
+    texture = new THREE.DataTexture(data, clothWidth, clothHeight, THREE.RGBAFormat, THREE.FloatType);
     texture.needsUpdate = true;
 
     gpgpu = new GPGPU(renderer);
@@ -97,7 +97,7 @@ function init () {
 
     // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
     // Set up an off-screen targets to render the data textures to
-    rtTexturePos = new THREE.WebGLRenderTarget(cloth_w, cloth_h, {
+    rtTexturePos = new THREE.WebGLRenderTarget(clothWidth, clothHeight, {
          wrapS: THREE.ClampToEdgeWrapping,
          wrapT: THREE.ClampToEdgeWrapping,
          minFilter: THREE.NearestFilter,
@@ -114,18 +114,18 @@ function init () {
     // Construct the geometry and faces of the cloth
     geometry = new THREE.Geometry();
 
-    for (var i = 0, l = cloth_w * cloth_h; i < l; i++) {
+    for (var i = 0, l = clothWidth * clothHeight; i < l; i++) {
         var vertex = new THREE.Vector3();
-        vertex.x = (i % cloth_w) / cloth_w;
-        vertex.y = Math.floor(i / cloth_w) / cloth_h;
+        vertex.x = (i % clothWidth) / clothWidth;
+        vertex.y = Math.floor(i / clothWidth) / clothHeight;
         geometry.vertices.push(vertex);
     }
 
-    for (var x = 0; x < cloth_w - 1; x++) {
-        for (var y = 0; y < cloth_h - 1; y++) {
+    for (var x = 0; x < clothWidth - 1; x++) {
+        for (var y = 0; y < clothHeight - 1; y++) {
 
-            var v0 = x + cloth_w * y;
-            var v1 = x + cloth_w * y + cloth_h;
+            var v0 = x + clothWidth * y;
+            var v1 = x + clothWidth * y + clothHeight;
 
             geometry.faces.push(new THREE.Face3(v1 + 1, v0, v1));
             geometry.faces.push(new THREE.Face3(v1, v0 + 1, v0));
@@ -145,8 +145,8 @@ function init () {
         uniforms: {
             "tex": { type: "t", value: clothTexture },
             "map": { type: "t", value: texture },
-            "width": { type: "f", value: cloth_w },
-            "height": { type: "f", value: cloth_h },
+            "width": { type: "f", value: clothWidth },
+            "height": { type: "f", value: clothHeight },
             "camPos": { type: "v3", value: camera.position }
         },
         vertexShader: document.getElementById('vs-particles').textContent,
@@ -157,8 +157,13 @@ function init () {
         wireframe: gui.getWireframe()
     });
 
+    // Combine the geometry and clothMaterial to form a mesh
     mesh = new THREE.Mesh(geometry, clothMaterial);
+
+    // Scale the mesh as a whole
     mesh.scale.set(50, 50, 50);
+
+    // Add the mesh to the scene
     scene.add(mesh);
 }
 
@@ -200,7 +205,7 @@ function render () {
         gpgpu.pass(simulationShader, rtTexturePos2, gui);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
-        // Switch the reference to the FBO's to ping-pong
+        // Switch the reference pointers to the position FBO to ping-pong
         var buffer = rtTexturePos;
         rtTexturePos = rtTexturePos2;
         rtTexturePos2 = buffer;

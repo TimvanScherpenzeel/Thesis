@@ -13,7 +13,7 @@ var GPGPU = function (renderer) {
     var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1));
     scene.add(mesh);
 
-    var velTexture = new THREE.WebGLRenderTarget(cloth_w, cloth_h, {
+    var velTexture = new THREE.WebGLRenderTarget(clothWidth, clothHeight, {
         wrapS: THREE.ClampToEdgeWrapping,
         wrapT: THREE.ClampToEdgeWrapping,
         minFilter: THREE.NearestFilter,
@@ -41,9 +41,10 @@ var GPGPU = function (renderer) {
         mesh.material = shader.updatePosMat;
         renderer.render(scene, camera, target, false);
 
-        var a = velTexture;
+        // Switch the reference pointers to the velocity FBO to ping-pong
+        var buffer = velTexture;
         velTexture = prevVelTexture;
-        prevVelTexture = a;
+        prevVelTexture = buffer;
        
     };
 };
