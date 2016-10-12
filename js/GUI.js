@@ -1,7 +1,7 @@
 var gui = function () {
 
     var KsSpringAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 5000.0 : 15000.0; // Spring amount over 10K is problamatic on iOS devices
-    var KdSpringAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 13 : 1; // Compensate for the reduced spring amount on iOS devices
+    var KdSpringAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 8 : 1; // Compensate for the reduced spring amount on iOS devices
     var DampingAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 0.59 : 0.52; // Compensate the reduced spring amount on iOS devices
 
     var controls = {
