@@ -22,20 +22,20 @@ GPGPU.SimulationShader = function () {
 
     var updateVelMat = new THREE.ShaderMaterial({
         uniforms: {        
-            cloth_w: { type: "f", value: cloth_w },
+            clothWidth: { type: "f", value: clothWidth },
             tVelocity: { type: "t", value: texture },
             tPositions: { type: "t", value: texture },
-            timestep: { type: "f", value: 0.0 },
+            u_timestep: { type: "f", value: 0.0 },
             u_mass: { type: "f", value: 0.0 },
             u_windX: { type: "f", value: 0.0 },
             u_windY: { type: "f", value: 0.0 },
             u_windZ: { type: "f", value: 0.0 },
             u_time: { type: "f", value: 0.0 },
             u_damping: { type: "f", value: 0.0 },
+            u_pins: { type: "v4", value: new THREE.Vector4(1.0, 1.0, 0.0, 0.0)},
             Str: { type: "v2", value: new THREE.Vector2(0, 0)},
             Shr: { type: "v2", value: new THREE.Vector2(0, 0)},
             Bnd: { type: "v2", value: new THREE.Vector2(0, 0)},
-            u_pins: { type: "v4", value: new THREE.Vector4(1.0, 1.0, 0.0, 0.0)},
         },
 
         vertexShader: [
@@ -48,20 +48,20 @@ GPGPU.SimulationShader = function () {
 
         fragmentShader: [
             'varying vec2 vUv;',
-            'uniform float cloth_w;',
+            'uniform float clothWidth;',
             'uniform sampler2D tVelocity;',  
             'uniform sampler2D tPositions;',
-            'uniform float timestep;',
+            'uniform float u_timestep;',
             'uniform float u_mass;',
             'uniform float u_windX;',
             'uniform float u_windY;',
             'uniform float u_windZ;',
             'uniform float u_time;',
             'uniform float u_damping;',
+            'uniform vec4 u_pins;',
             'uniform vec2 Str;',
             'uniform vec2 Shr;',
             'uniform vec2 Bnd;',
-            'uniform vec4 u_pins;',
 
             // returns the position of the given vertex along with its spring and damping constants
             'vec2 getNeighbor(int n, out float ks, out float kd) {',
@@ -158,12 +158,12 @@ GPGPU.SimulationShader = function () {
             '    vec2 neighborCoord = getNeighbor(k, ks, kd);',
 
                  // Size of a single patch in world space
-            '    float invClothSize = 1.0 / cloth_w;',
+            '    float invClothSize = 1.0 / clothWidth;',
 
                  // Length of a single patch at rest
             '    float restLength = length(neighborCoord * invClothSize);',
 
-            '    neighborCoord = neighborCoord * (1.0 / cloth_w);',
+            '    neighborCoord = neighborCoord * (1.0 / clothWidth);',
             '    vec2 newCoord = vUv + neighborCoord;',
 
                  // Check for out of bounds indices
@@ -200,7 +200,7 @@ GPGPU.SimulationShader = function () {
                  // 2. PositionNew = PositionCurrent -> PositionNew += VelocityNew * Timestep 
 
                  // First part of semi-implicit Euler's method
-            '    vel.xyz += acc * timestep;',
+            '    vel.xyz += acc * u_timestep;',
             '  }',
 
                // Set the new velocity of the particle
@@ -278,7 +278,7 @@ GPGPU.SimulationShader = function () {
 
         setGUISettings: function (gui) {
             updatePosMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
-            updateVelMat.uniforms.timestep.value = gui.getTimeStep();
+            updateVelMat.uniforms.u_timestep.value = gui.getTimeStep();
             updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsString(), -gui.getKdString());
             updateVelMat.uniforms.Shr.value = new THREE.Vector2(gui.getKsShear(), -gui.getKdShear());
             updateVelMat.uniforms.Bnd.value = new THREE.Vector2(gui.getKsBend(), -gui.getKdBend());

@@ -13,7 +13,7 @@ var GPGPU = function (renderer) {
     var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1, 1));
     scene.add(mesh);
 
-    var velTexture = new THREE.WebGLRenderTarget(cloth_w, cloth_h, {
+    var velTexture = new THREE.WebGLRenderTarget(clothWidth, clothHeight, {
         wrapS: THREE.ClampToEdgeWrapping,
         wrapT: THREE.ClampToEdgeWrapping,
         minFilter: THREE.NearestFilter,
