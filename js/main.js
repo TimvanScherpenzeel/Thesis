@@ -7,11 +7,17 @@ var clock = new THREE.Clock();
 // Simulation count
 var count = 0;
 
+mobile = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? true : false; // Samsung Galaxy S7 Edge reports a user agent of X11, not Android
+
 // iOS devices only support half floats
 // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
 // https://stackoverflow.com/questions/13976091/floating-point-textures-in-opengl-es-2-0-on-ios-without-clamping-them-to-0-1
 // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
-var floatType = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? THREE.HalfFloatType : THREE.FloatType;
+if (mobile) {
+    var floatType = THREE.HalfFloatType;
+} else {
+    var floatType = THREE.FloatType;
+};
 
 function init () {
     container = document.createElement('div');
@@ -222,7 +228,7 @@ function render () {
     requestAnimationFrame(render);
 }
 
-gui = new gui();
+gui = new gui(mobile);
 gui.init();
 
 init();

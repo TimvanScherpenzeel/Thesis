@@ -1,8 +1,14 @@
-var gui = function () {
+var gui = function (mobile) {
 
-    var KsSpringAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 5000.0 : 15000.0; // Spring amount over 10K is problamatic on iOS devices
-    var KdSpringAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 8 : 1; // Compensate for the reduced spring amount on iOS devices
-    var DampingAmount = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? 0.59 : 0.52; // Compensate the reduced spring amount on iOS devices
+    if(mobile){
+        var KsSpringAmount = 5000; // Spring amount over 10K is problamatic on iOS devices
+        var KdSpringAmount = 8; // Compensate for the reduced spring amount on iOS devices
+        var DampingAmount = 0.52; // Compensate the reduced spring amount on iOS devices
+    } else {
+        var KsSpringAmount = 15000; // Spring amount over 10K is problamatic on iOS devices
+        var KdSpringAmount = 1; // Compensate for the reduced spring amount on iOS devices
+        var DampingAmount = 0.59; // Compensate the reduced spring amount on iOS devices
+    }
 
     var controls = {
         gui: null,
@@ -11,7 +17,7 @@ var gui = function () {
         "Ks Struct": KsSpringAmount,
         "Ks Shear": KsSpringAmount,
         "Ks Bend": KsSpringAmount,
-        "Kd String": KdSpringAmount,
+        "Kd Struct": KdSpringAmount,
         "Kd Shear": KdSpringAmount,
         "Kd Bend": KdSpringAmount,
         "Damping": DampingAmount,
@@ -31,7 +37,7 @@ var gui = function () {
         return controls['Time Step'];
     };
 
-    this.getKsString = function () {
+    this.getKsStruct = function () {
         return controls['Ks Struct'];
     };
 
@@ -43,8 +49,8 @@ var gui = function () {
         return controls['Ks Bend'];
     };
 
-    this.getKdString = function () {
-        return controls['Kd String'];
+    this.getKdStruct = function () {
+        return controls['Kd Struct'];
     };
     
     this.getKdShear = function () {
@@ -110,7 +116,7 @@ var gui = function () {
         simulationSettings.add(controls, "Ks Struct");
         simulationSettings.add(controls, "Ks Shear");
         simulationSettings.add(controls, "Ks Bend");
-        simulationSettings.add(controls, "Kd String");
+        simulationSettings.add(controls, "Kd Struct");
         simulationSettings.add(controls, "Kd Shear");
         simulationSettings.add(controls, "Kd Bend");
         simulationSettings.add(controls, "Damping");
