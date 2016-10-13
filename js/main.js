@@ -31,9 +31,11 @@ function init () {
     canvas = document.createElement('canvas');
 
     renderer = new THREE.WebGLRenderer({ 
-        canvas: canvas, 
+        canvas: canvas,
+        // antialias: true
     });
 
+    // renderer.setClearColor( 0xffffff, 1);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
