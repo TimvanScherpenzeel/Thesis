@@ -279,7 +279,7 @@ GPGPU.SimulationShader = function () {
         setGUISettings: function (gui) {
             updatePosMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
             updateVelMat.uniforms.u_timestep.value = gui.getTimeStep();
-            updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsString(), -gui.getKdString());
+            updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsStruct(), -gui.getKdStruct());
             updateVelMat.uniforms.Shr.value = new THREE.Vector2(gui.getKsShear(), -gui.getKdShear());
             updateVelMat.uniforms.Bnd.value = new THREE.Vector2(gui.getKsBend(), -gui.getKdBend());
             updateVelMat.uniforms.u_windX.value = gui.getWindForceX();
