@@ -15,19 +15,18 @@
             - Mr Doob: https://github.com/mrdoob/brokenmantra/blob/master/js/GPGPU.js and Three.js as a whole
 
         To do:
-            - Play around with spring numbers in relation to particle density (50 - 100 - 200 - 300 - 400 - 500)
-            - Framerate tests on various mobile devices
-            - Identify and document issues regarding the camera controls on touch devices
-
-
-        Would like to implement:
-            - Implement Three's Phong shader as a replacement for custom lighting
-            - Add particle specific mass (for example weigh down the edges due to them being doubled)
-            - Makes the pin geometry move when repinned or removed
-            - Look at implementing rigid body physics
-            - Look at raycasting to add interactivity to the cloth
-            - Look at how to raycast an area, not a single vertex
-            - Look at cloth collisions with other objects (z-fighting / clipping issues)
+            - Add touch / mouse interaction and raycasting to add interaction with the cloth
+            - Implement support for area raycasting
+            - Add cloth tearing, rigid body support and object- and self collision and possible add a fix for z-fighting and clipping issues.
+            - Add interaction with lights and other objects in the scene
+            - Add shadow casting and receiving
+            - Add support for partially transparent textures (PNG’s).
+            - Create particle location specific mass and wind dynamics
+            - Use higher order methods of numerical integration (Verlet, Runge-Kutta 4th order) to increase the precision
+            - Make the pin geometry move when repinned or removed
+            - Construct a custom phong shader using Shaderchunks available in Three.js
+            - Identify the specific reason why the Samsung Galaxy S7 Edge is not supported and implement a fix. The goal is to support all modern mobile devices and modern browsers.
+            - Identify and document issues regarding the camera controls on touch devices in combination with cloth interaction
         -->
 
         <script id="vs-particles" type="x-shader/x-vertex">
