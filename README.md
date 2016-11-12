@@ -31,7 +31,7 @@ In the `documentation` folder one can find an overview of compatibility tests an
 
 &nbsp;
 
-![0.jpg](/screenshots/0.jpg?raw=true)
+![0.jpg](/screenshots/1.jpg?raw=true)
 *Macbook Pro Retina (2015)*
 
 &nbsp;
