@@ -106,8 +106,8 @@ function init () {
     texture.needsUpdate = true;
 
     gpgpu = new GPGPU(renderer);
-    simulationShader = new GPGPU.SimulationShader();
-    simulationShader.setOriginsTexture(texture);
+    simulation = new GPGPU.Simulation();
+    simulation.setOriginsTexture(texture);
 
     // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
     // Set up an off-screen targets to render the data textures to
@@ -203,20 +203,20 @@ function render () {
     while(i > 0){
         i--;
 
-        simulationShader.setTimer(gui.getTimeStep());
+        simulation.setTimer(gui.getTimeStep());
 
         // set the current positions 
-        simulationShader.setPositionsTexture(rtTexturePos);
+        simulation.setPositionsTexture(rtTexturePos);
 
         if (count < 15) {
-            gpgpu.initVel(simulationShader);
+            gpgpu.initVel(simulation);
         }
 
         if (count > 20) {
-            simulationShader.setStart(0);
+            simulation.setStart(0);
         }
 
-        gpgpu.pass(simulationShader, rtTexturePos2, gui);
+        gpgpu.pass(simulation, rtTexturePos2, gui);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
         // Switch the reference pointers to the position FBO to ping-pong
