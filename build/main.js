@@ -47001,16 +47001,6 @@ GPGPU.Simulation = function () {
 
 };
 
-/*
-
- dMMMMMMP dMP dMP .dMMMb        
-   dMP   dMP dMP dMP" VP        Bachelor thesis - Simulating cloth in WebGL
-  dMP   dMP dMP  VMMMb          Copyright (c) 2016 Tim van Scherpenzeel
- dMP    YMvAP" dP .dMP          https://www.timvanscherpenzeel.com
-dMP      VP"   VMMMP"
-
-*/
-
 // Cloth size
 var clothWidth = clothHeight = 100;
 
