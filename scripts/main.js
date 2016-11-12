@@ -1,3 +1,13 @@
+/*
+
+ dMMMMMMP dMP dMP .dMMMb        
+   dMP   dMP dMP dMP" VP        Bachelor thesis - Simulating cloth in WebGL
+  dMP   dMP dMP  VMMMb          Copyright (c) 2016 Tim van Scherpenzeel
+ dMP    YMvAP" dP .dMP          https://www.timvanscherpenzeel.com
+dMP      VP"   VMMMP"
+
+*/
+
 // Cloth size
 var clothWidth = clothHeight = 100;
 
@@ -13,11 +23,7 @@ mobile = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? true : false; // Sa
 // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
 // https://stackoverflow.com/questions/13976091/floating-point-textures-in-opengl-es-2-0-on-ios-without-clamping-them-to-0-1
 // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
-if (mobile) {
-    var floatType = THREE.HalfFloatType;
-} else {
-    var floatType = THREE.FloatType;
-};
+floatType = (mobile) ? THREE.HalfFloatType : THREE.FloatType;
 
 function init () {
     container = document.createElement('div');
