@@ -4,7 +4,7 @@
  * https://github.com/zammiez/CIS565-Final-WebGL-Cloth-Simulation
  */
 
-GPGPU.SimulationShader = function () {
+GPGPU.Simulation = function () {
     
     var initVelMat = new THREE.ShaderMaterial({
         vertexShader: [

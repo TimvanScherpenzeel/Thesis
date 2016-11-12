@@ -1,11 +1,7 @@
 {
   "name": "thesis",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Cloth simulation",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TimvanScherpenzeel/Thesis.git"
@@ -21,5 +17,11 @@
     "gulp-autoprefixer": "^3.1.1",
     "gulp-plumber": "^1.1.0",
     "gulp-sass": "^2.3.2"
+  },
+  "devDependencies": {
+    "gulp-concat": "^2.6.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-shell": "^0.5.2",
+    "gulp-uglify": "^2.0.0"
   }
 }

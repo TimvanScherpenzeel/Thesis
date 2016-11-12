@@ -1,3 +1,13 @@
+/*
+
+ dMMMMMMP dMP dMP .dMMMb        
+   dMP   dMP dMP dMP" VP        Bachelor thesis - Simulating cloth in WebGL
+  dMP   dMP dMP  VMMMb          Copyright (c) 2016 Tim van Scherpenzeel
+ dMP    YMvAP" dP .dMP          https://www.timvanscherpenzeel.com
+dMP      VP"   VMMMP"
+
+*/
+
 // Cloth size
 var clothWidth = clothHeight = 100;
 
@@ -13,11 +23,7 @@ mobile = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? true : false; // Sa
 // https://github.com/yomboprime/GPGPU-threejs-demos/issues/5
 // https://stackoverflow.com/questions/13976091/floating-point-textures-in-opengl-es-2-0-on-ios-without-clamping-them-to-0-1
 // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
-if (mobile) {
-    var floatType = THREE.HalfFloatType;
-} else {
-    var floatType = THREE.FloatType;
-};
+floatType = (mobile) ? THREE.HalfFloatType : THREE.FloatType;
 
 function init () {
     container = document.createElement('div');
@@ -100,8 +106,8 @@ function init () {
     texture.needsUpdate = true;
 
     gpgpu = new GPGPU(renderer);
-    simulationShader = new GPGPU.SimulationShader();
-    simulationShader.setOriginsTexture(texture);
+    simulation = new GPGPU.Simulation();
+    simulation.setOriginsTexture(texture);
 
     // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
     // Set up an off-screen targets to render the data textures to
@@ -144,9 +150,7 @@ function init () {
     }
 
     // Cloth texture
-    var clothTextures = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"];
-    var randomClothTexture = clothTextures[ Math.floor(Math.random() * clothTextures.length) ];
-    var clothTexture = new THREE.TextureLoader().load(randomClothTexture);
+    var clothTexture = new THREE.TextureLoader().load('textures/cloth.jpg');
     clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
 
     clothMaterial = new THREE.ShaderMaterial({
@@ -197,20 +201,20 @@ function render () {
     while(i > 0){
         i--;
 
-        simulationShader.setTimer(gui.getTimeStep());
+        simulation.setTimer(gui.getTimeStep());
 
         // set the current positions 
-        simulationShader.setPositionsTexture(rtTexturePos);
+        simulation.setPositionsTexture(rtTexturePos);
 
         if (count < 15) {
-            gpgpu.initVel(simulationShader);
+            gpgpu.initVel(simulation);
         }
 
         if (count > 20) {
-            simulationShader.setStart(0);
+            simulation.setStart(0);
         }
 
-        gpgpu.pass(simulationShader, rtTexturePos2, gui);
+        gpgpu.pass(simulation, rtTexturePos2, gui);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
         // Switch the reference pointers to the position FBO to ping-pong
