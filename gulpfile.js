@@ -62,13 +62,13 @@ gulp.task('scripts', function() {
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('clear', shell.task(['rm -rf build/*']));
+gulp.task('clean', shell.task(['rm -rf build/*']));
 
 gulp.task('serve', ['styles', 'scripts'], function() {
     gulp.watch('styles/**/*.scss', ['styles']);
     gulp.watch('scripts/**/*.js', ['scripts']);
 });
 
-gulp.task('build', ['clear', 'styles', 'scripts']);
+gulp.task('build', ['clean', 'styles', 'scripts']);
 
 gulp.task('default', ['build']);
