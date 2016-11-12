@@ -150,9 +150,7 @@ function init () {
     }
 
     // Cloth texture
-    var clothTextures = ["textures/cloth_1.jpg", "textures/cloth_2.jpg", "textures/cloth_3.jpg"];
-    var randomClothTexture = clothTextures[ Math.floor(Math.random() * clothTextures.length) ];
-    var clothTexture = new THREE.TextureLoader().load(randomClothTexture);
+    var clothTexture = new THREE.TextureLoader().load('textures/cloth.jpg');
     clothTexture.wrapS = clothTexture.wrapT = THREE.ClampToEdgeWrapping;
 
     clothMaterial = new THREE.ShaderMaterial({
