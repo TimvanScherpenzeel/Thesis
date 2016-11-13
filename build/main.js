@@ -46484,7 +46484,7 @@ Object.defineProperties( THREE.OrbitControls.prototype, {
 	}
 
 } );
-var gui = function (mobile) {
+var GUI = function (mobile) {
 
     if(mobile){
         var KsSpringAmount = 5000; // Spring amount over 10K is problamatic on iOS devices
@@ -46497,7 +46497,7 @@ var gui = function (mobile) {
     }
 
     var controls = {
-        gui: null,
+        GUI: null,
 
         "Time Step": 0.003,
         "Ks Struct": KsSpringAmount,
@@ -46595,9 +46595,9 @@ var gui = function (mobile) {
     };
 
     this.init = function () {
-        controls.gui = new dat.GUI();
+        controls.GUI = new dat.GUI();
 
-        var simulationSettings = controls.gui.addFolder('Simulation settings');
+        var simulationSettings = controls.GUI.addFolder('Simulation settings');
         simulationSettings.add(controls, "Time Step");
         simulationSettings.add(controls, "Ks Struct");
         simulationSettings.add(controls, "Ks Shear");
@@ -46609,7 +46609,7 @@ var gui = function (mobile) {
         simulationSettings.add(controls, "Mass");
         simulationSettings.add(controls, "Wireframe");
        
-        var interactionFolder = controls.gui.addFolder('Interactions');
+        var interactionFolder = controls.GUI.addFolder('Interactions');
         interactionFolder.add(controls, "Wind");
         interactionFolder.add(controls, "Wind Force X");
         interactionFolder.add(controls, "Wind Force Y");
@@ -46656,8 +46656,8 @@ var GPGPU = function (renderer) {
         renderer.render(scene, camera, prevVelTexture, false);
     };
 
-    this.pass = function (shader, target, gui) {
-        shader.setGUISettings(gui);
+    this.pass = function (shader, target, GUI) {
+        shader.setGUISettings(GUI);
         shader.setPrevVelocityTexture(prevVelTexture);
         mesh.material = shader.updateVelMat;
         renderer.render(scene, camera, velTexture, false);
@@ -46732,18 +46732,18 @@ GPGPU.Simulation = function (shaderText) {
 
         updatePosMat: updatePosMat,
 
-        setGUISettings: function (gui) {
-            updatePosMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
-            updateVelMat.uniforms.u_timestep.value = gui.getTimeStep();
-            updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsStruct(), -gui.getKdStruct());
-            updateVelMat.uniforms.Shr.value = new THREE.Vector2(gui.getKsShear(), -gui.getKdShear());
-            updateVelMat.uniforms.Bnd.value = new THREE.Vector2(gui.getKsBend(), -gui.getKdBend());
-            updateVelMat.uniforms.u_windX.value = gui.getWindForceX();
-            updateVelMat.uniforms.u_windY.value = gui.getWindForceY();
-            updateVelMat.uniforms.u_windZ.value = gui.getWindForceZ();
-            updateVelMat.uniforms.u_damping.value = gui.getDamping();
-            updateVelMat.uniforms.u_mass.value = gui.getMass();
-            updateVelMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
+        setGUISettings: function (GUI) {
+            updatePosMat.uniforms.u_pins.value = new THREE.Vector4(GUI.getPin1(), GUI.getPin2());
+            updateVelMat.uniforms.u_timestep.value = GUI.getTimeStep();
+            updateVelMat.uniforms.Str.value = new THREE.Vector2(GUI.getKsStruct(), -GUI.getKdStruct());
+            updateVelMat.uniforms.Shr.value = new THREE.Vector2(GUI.getKsShear(), -GUI.getKdShear());
+            updateVelMat.uniforms.Bnd.value = new THREE.Vector2(GUI.getKsBend(), -GUI.getKdBend());
+            updateVelMat.uniforms.u_windX.value = GUI.getWindForceX();
+            updateVelMat.uniforms.u_windY.value = GUI.getWindForceY();
+            updateVelMat.uniforms.u_windZ.value = GUI.getWindForceZ();
+            updateVelMat.uniforms.u_damping.value = GUI.getDamping();
+            updateVelMat.uniforms.u_mass.value = GUI.getMass();
+            updateVelMat.uniforms.u_pins.value = new THREE.Vector4(GUI.getPin1(), GUI.getPin2());
             updateVelMat.uniforms.u_time.value = clock.getElapsedTime();
         },
 
@@ -46782,7 +46782,7 @@ GPGPU.Simulation = function (shaderText) {
 
 };
 
-function loadShaderFile(url, data, callback, errorCallback) {
+function loadShaderFile (url, data, callback, errorCallback) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
 
@@ -46799,12 +46799,12 @@ function loadShaderFile(url, data, callback, errorCallback) {
     request.send(null);    
 }
 
-function loadShaderFiles(urls, callback, errorCallback) {
+function loadShaderFiles (urls, callback, errorCallback) {
     var numUrls = urls.length;
     var numComplete = 0;
     var result = [];
 
-    function partialCallback(text, urlIndex) {
+    function partialCallback (text, urlIndex) {
         result[urlIndex] = text;
         numComplete++;
 
@@ -46975,7 +46975,7 @@ function init (shaderText) {
         blending: THREE.AdditiveBlending,
         depthWrite: true,
         depthTest: true,
-        wireframe: gui.getWireframe()
+        wireframe: GUI.getWireframe()
     });
 
     // Combine the geometry and clothMaterial to form a mesh
@@ -46998,19 +46998,17 @@ window.addEventListener('resize', onWindowResize, false);
 
 function render () {
 
-    //console.log(camera.position);
-
     stats.begin();
 
     // Wireframe toggle
-    clothMaterial.wireframe = gui.getWireframe();
+    clothMaterial.wireframe = GUI.getWireframe();
 
-    var i = gui.getSimulationSpeed();
+    var i = GUI.getSimulationSpeed();
     
     while(i > 0){
         i--;
 
-        simulation.setTimer(gui.getTimeStep());
+        simulation.setTimer(GUI.getTimeStep());
 
         // set the current positions 
         simulation.setPositionsTexture(rtTexturePos);
@@ -47023,7 +47021,7 @@ function render () {
             simulation.setStart(0);
         }
 
-        gpgpu.pass(simulation, rtTexturePos2, gui);
+        gpgpu.pass(simulation, rtTexturePos2, GUI);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
         // Switch the reference pointers to the position FBO to ping-pong
@@ -47043,8 +47041,8 @@ function render () {
     requestAnimationFrame(render);
 }
 
-gui = new gui(mobile);
-gui.init();
+GUI = new GUI(mobile);
+GUI.init();
 
 loadShaderFiles([
     'shaders/particles.vert',

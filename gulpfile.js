@@ -49,8 +49,8 @@ gulp.task('scripts', function() {
             'scripts/vendor/dat.gui.js',
             'scripts/vendor/stats.min.js',
             'scripts/vendor/orbitcontrols.js',
-            'scripts/gui.js',
-            'scripts/gpgpu.js',
+            'scripts/GUI.js',
+            'scripts/GPGPU.js',
             'scripts/simulation.js',
             'scripts/shaderloader.js',
             'scripts/main.js'

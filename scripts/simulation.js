@@ -57,18 +57,18 @@ GPGPU.Simulation = function (shaderText) {
 
         updatePosMat: updatePosMat,
 
-        setGUISettings: function (gui) {
-            updatePosMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
-            updateVelMat.uniforms.u_timestep.value = gui.getTimeStep();
-            updateVelMat.uniforms.Str.value = new THREE.Vector2(gui.getKsStruct(), -gui.getKdStruct());
-            updateVelMat.uniforms.Shr.value = new THREE.Vector2(gui.getKsShear(), -gui.getKdShear());
-            updateVelMat.uniforms.Bnd.value = new THREE.Vector2(gui.getKsBend(), -gui.getKdBend());
-            updateVelMat.uniforms.u_windX.value = gui.getWindForceX();
-            updateVelMat.uniforms.u_windY.value = gui.getWindForceY();
-            updateVelMat.uniforms.u_windZ.value = gui.getWindForceZ();
-            updateVelMat.uniforms.u_damping.value = gui.getDamping();
-            updateVelMat.uniforms.u_mass.value = gui.getMass();
-            updateVelMat.uniforms.u_pins.value = new THREE.Vector4(gui.getPin1(), gui.getPin2());
+        setGUISettings: function (GUI) {
+            updatePosMat.uniforms.u_pins.value = new THREE.Vector4(GUI.getPin1(), GUI.getPin2());
+            updateVelMat.uniforms.u_timestep.value = GUI.getTimeStep();
+            updateVelMat.uniforms.Str.value = new THREE.Vector2(GUI.getKsStruct(), -GUI.getKdStruct());
+            updateVelMat.uniforms.Shr.value = new THREE.Vector2(GUI.getKsShear(), -GUI.getKdShear());
+            updateVelMat.uniforms.Bnd.value = new THREE.Vector2(GUI.getKsBend(), -GUI.getKdBend());
+            updateVelMat.uniforms.u_windX.value = GUI.getWindForceX();
+            updateVelMat.uniforms.u_windY.value = GUI.getWindForceY();
+            updateVelMat.uniforms.u_windZ.value = GUI.getWindForceZ();
+            updateVelMat.uniforms.u_damping.value = GUI.getDamping();
+            updateVelMat.uniforms.u_mass.value = GUI.getMass();
+            updateVelMat.uniforms.u_pins.value = new THREE.Vector4(GUI.getPin1(), GUI.getPin2());
             updateVelMat.uniforms.u_time.value = clock.getElapsedTime();
         },
 

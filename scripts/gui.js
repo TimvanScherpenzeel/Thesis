@@ -1,4 +1,4 @@
-var gui = function (mobile) {
+var GUI = function (mobile) {
 
     if(mobile){
         var KsSpringAmount = 5000; // Spring amount over 10K is problamatic on iOS devices
@@ -11,7 +11,7 @@ var gui = function (mobile) {
     }
 
     var controls = {
-        gui: null,
+        GUI: null,
 
         "Time Step": 0.003,
         "Ks Struct": KsSpringAmount,
@@ -109,9 +109,9 @@ var gui = function (mobile) {
     };
 
     this.init = function () {
-        controls.gui = new dat.GUI();
+        controls.GUI = new dat.GUI();
 
-        var simulationSettings = controls.gui.addFolder('Simulation settings');
+        var simulationSettings = controls.GUI.addFolder('Simulation settings');
         simulationSettings.add(controls, "Time Step");
         simulationSettings.add(controls, "Ks Struct");
         simulationSettings.add(controls, "Ks Shear");
@@ -123,7 +123,7 @@ var gui = function (mobile) {
         simulationSettings.add(controls, "Mass");
         simulationSettings.add(controls, "Wireframe");
        
-        var interactionFolder = controls.gui.addFolder('Interactions');
+        var interactionFolder = controls.GUI.addFolder('Interactions');
         interactionFolder.add(controls, "Wind");
         interactionFolder.add(controls, "Wind Force X");
         interactionFolder.add(controls, "Wind Force Y");
