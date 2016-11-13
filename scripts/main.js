@@ -15,7 +15,7 @@ mobile = (/(iPad|iPhone|iPod)/g.test(navigator.userAgent)) ? true : false; // Sa
 // "GL_OES_texture_float" is supported when printing glGetString(GL_EXTENSIONS) on iOS devices however it does not actually work.
 floatType = (mobile) ? THREE.HalfFloatType : THREE.FloatType;
 
-function init () {
+function init (shaderText) {
     container = document.createElement('div');
     stats = new Stats();
     stats.domElement.style.position = 'absolute';
@@ -96,7 +96,7 @@ function init () {
     texture.needsUpdate = true;
 
     gpgpu = new GPGPU(renderer);
-    simulation = new GPGPU.Simulation();
+    simulation = new GPGPU.Simulation(shaderText);
     simulation.setOriginsTexture(texture);
 
     // http://mrdoob.com/lab/javascript/webgl/particles/particles_zz85.html + https://github.com/toji/webgl2-particles
@@ -151,8 +151,8 @@ function init () {
             "height": { type: "f", value: clothHeight },
             "camPos": { type: "v3", value: camera.position }
         },
-        vertexShader: document.getElementById('vs-particles').textContent,
-        fragmentShader: document.getElementById('fs-particles').textContent,
+        vertexShader: shaderText[0],
+        fragmentShader: shaderText[1],
         blending: THREE.AdditiveBlending,
         depthWrite: true,
         depthTest: true,
@@ -227,6 +227,18 @@ function render () {
 gui = new gui(mobile);
 gui.init();
 
-init();
-
-render();
+loadShaderFiles([
+    'shaders/particles.vert',
+    'shaders/particles.frag',
+    'shaders/initvelmat.vert',
+    'shaders/initvelmat.frag',
+    'shaders/updatevelmat.vert',    
+    'shaders/updatevelmat.frag',
+    'shaders/updateposmat.vert',
+    'shaders/updateposmat.frag'
+    ], function (shaderText) {
+        init(shaderText);
+        render();
+    }, function (url) {
+        console.log('Failed to download "' + url + '"');
+});

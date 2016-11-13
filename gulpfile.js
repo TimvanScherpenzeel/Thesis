@@ -52,6 +52,7 @@ gulp.task('scripts', function() {
             'scripts/gui.js',
             'scripts/gpgpu.js',
             'scripts/simulation.js',
+            'scripts/shaderloader.js',
             'scripts/main.js'
         ])
         .pipe(concat('main.js'))
