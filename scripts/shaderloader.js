@@ -1,4 +1,4 @@
-function loadShaderFile(url, data, callback, errorCallback) {
+function loadShaderFile (url, data, callback, errorCallback) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
 
@@ -15,12 +15,12 @@ function loadShaderFile(url, data, callback, errorCallback) {
     request.send(null);    
 }
 
-function loadShaderFiles(urls, callback, errorCallback) {
+function loadShaderFiles (urls, callback, errorCallback) {
     var numUrls = urls.length;
     var numComplete = 0;
     var result = [];
 
-    function partialCallback(text, urlIndex) {
+    function partialCallback (text, urlIndex) {
         result[urlIndex] = text;
         numComplete++;
 
