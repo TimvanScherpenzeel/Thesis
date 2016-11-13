@@ -12,15 +12,15 @@
     "url": "https://github.com/TimvanScherpenzeel/Thesis/issues"
   },
   "homepage": "https://github.com/TimvanScherpenzeel/Thesis#readme",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "gulp": "^3.9.1",
     "gulp-autoprefixer": "^3.1.1",
-    "gulp-plumber": "^1.1.0",
-    "gulp-sass": "^2.3.2"
-  },
-  "devDependencies": {
+    "gulp-banner": "^0.1.3",
     "gulp-concat": "^2.6.0",
+    "gulp-plumber": "^1.1.0",
     "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.3.2",
     "gulp-shell": "^0.5.2",
     "gulp-uglify": "^2.0.0"
   }
