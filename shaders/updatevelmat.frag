@@ -1,6 +1,6 @@
 varying vec2 vUv;
 uniform float clothWidth;
-uniform sampler2D tVelocity;,  
+uniform sampler2D tVelocity;  
 uniform sampler2D tPositions;
 uniform float u_timestep;
 uniform float u_mass;
@@ -137,9 +137,9 @@ void main() {
   vec3 acc;
   if(u_mass == 0.0) acc = vec3(0.0); else acc = force / u_mass;
 
-  bool pinBoolean = false;,  
-  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0);, //Pin 1, Top left
-  if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0);, // Pin 2, Top right
+  bool pinBoolean = false;  
+  if(!pinBoolean) pinBoolean = (vUv.y < 0.035 && vUv.x < 0.035 && u_pins.y > 0.0); //Pin 1, Top left
+  if(!pinBoolean) pinBoolean = (vUv.y > 0.965 && vUv.x < 0.035 && u_pins.x > 0.0); // Pin 2, Top right
 
    // If the vertex is within the declared pin area make sure to fixate the position
   if(pinBoolean) {

@@ -13,7 +13,26 @@ var gulp = require('gulp'),
     plumber = require('gulp-plumber'),
 
     // Shell
-    shell = require('gulp-shell');
+    shell = require('gulp-shell'),
+
+    // Banner
+    banner = require('gulp-banner'),
+    pkg = require('./package.json'),
+    comment = 
+    '/*\n' +
+    '\n' +
+    '  <%= pkg.description %>\n' +
+    '\n' +
+    '    dMMMMMMP dMP dMP .dMMMb\n' +      
+    '      dMP   dMP dMP dMP" VP        Bachelor thesis - Simulating cloth in WebGL\n' +
+    '     dMP   dMP dMP  VMMMb          Copyright (c) 2016 Tim van Scherpenzeel\n' +
+    '    dMP    YMvAP" dP .dMP          https://www.timvanscherpenzeel.com\n' +
+    '   dMP      VP"   VMMMP"\n' +
+    '\n' +
+    '  Released under the <%= pkg.license %> license.\n' +
+    '  Version number: <%= pkg.version %>\n' +
+    '\n' +
+    '*/\n\n';
 
 gulp.task('styles', function() {
     return gulp.src('styles/**/*.scss')
@@ -33,22 +52,24 @@ gulp.task('scripts', function() {
             'scripts/gui.js',
             'scripts/gpgpu.js',
             'scripts/simulation.js',
+            'scripts/shaderloader.js',
             'scripts/main.js'
         ])
         .pipe(concat('main.js'))
         .pipe(gulp.dest('build'))
         .pipe(rename('main.min.js'))
         .pipe(uglify())
+        .pipe(banner(comment, { pkg: pkg }))
         .pipe(gulp.dest('build'));
 });
 
-gulp.task('clear', shell.task(['rm -rf build/*']));
+gulp.task('clean', shell.task(['rm -rf build/*']));
 
 gulp.task('serve', ['styles', 'scripts'], function() {
     gulp.watch('styles/**/*.scss', ['styles']);
     gulp.watch('scripts/**/*.js', ['scripts']);
 });
 
-gulp.task('build', ['clear', 'styles', 'scripts']);
+gulp.task('build', ['clean', 'styles', 'scripts']);
 
 gulp.task('default', ['build']);

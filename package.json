@@ -1,7 +1,7 @@
 {
   "name": "thesis",
   "version": "1.0.0",
-  "description": "Cloth simulation",
+  "description": "Mass spring cloth simulation in WebGL using semi-implicit Euler and ping-pong FBO's.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TimvanScherpenzeel/Thesis.git"
