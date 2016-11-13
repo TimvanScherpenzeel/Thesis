@@ -232,7 +232,7 @@ loadShaderFiles([
     'shaders/particles.frag',
     'shaders/initvelmat.vert',
     'shaders/initvelmat.frag',
-    'shaders/updatevelmat.vert',    
+    'shaders/updatevelmat.vert', 
     'shaders/updatevelmat.frag',
     'shaders/updateposmat.vert',
     'shaders/updateposmat.frag'
