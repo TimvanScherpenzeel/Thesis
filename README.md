@@ -29,7 +29,7 @@ Mass spring cloth simulation in WebGL using semi-implicit Euler and ping-pong FB
 - Fix possible z-fighting and clipping issues
 - Add interaction with lights and other objects in the scene
 - Add shadow casting and receiving
-- Add support for partially transparent textures (PNG’s).
+- Add support for partially transparent textures (PNG’s)
 - Create particle location specific mass and wind dynamics
 - Use higher order methods of numerical integration (Verlet, Runge-Kutta 4th order)
 - Make the pin geometry move when repinned or removed
