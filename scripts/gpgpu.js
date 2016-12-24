@@ -31,8 +31,8 @@ var GPGPU = function (renderer) {
         renderer.render(scene, camera, prevVelTexture, false);
     };
 
-    this.pass = function (shader, target, gui) {
-        shader.setGUISettings(gui);
+    this.pass = function (shader, target, GUI) {
+        shader.setGUISettings(GUI);
         shader.setPrevVelocityTexture(prevVelTexture);
         mesh.material = shader.updateVelMat;
         renderer.render(scene, camera, velTexture, false);

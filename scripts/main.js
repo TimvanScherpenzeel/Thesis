@@ -156,7 +156,7 @@ function init (shaderText) {
         blending: THREE.AdditiveBlending,
         depthWrite: true,
         depthTest: true,
-        wireframe: gui.getWireframe()
+        wireframe: GUI.getWireframe()
     });
 
     // Combine the geometry and clothMaterial to form a mesh
@@ -179,19 +179,17 @@ window.addEventListener('resize', onWindowResize, false);
 
 function render () {
 
-    //console.log(camera.position);
-
     stats.begin();
 
     // Wireframe toggle
-    clothMaterial.wireframe = gui.getWireframe();
+    clothMaterial.wireframe = GUI.getWireframe();
 
-    var i = gui.getSimulationSpeed();
+    var i = GUI.getSimulationSpeed();
     
     while(i > 0){
         i--;
 
-        simulation.setTimer(gui.getTimeStep());
+        simulation.setTimer(GUI.getTimeStep());
 
         // set the current positions 
         simulation.setPositionsTexture(rtTexturePos);
@@ -204,7 +202,7 @@ function render () {
             simulation.setStart(0);
         }
 
-        gpgpu.pass(simulation, rtTexturePos2, gui);
+        gpgpu.pass(simulation, rtTexturePos2, GUI);
         clothMaterial.uniforms.map.value = rtTexturePos;
 
         // Switch the reference pointers to the position FBO to ping-pong
@@ -224,8 +222,8 @@ function render () {
     requestAnimationFrame(render);
 }
 
-gui = new gui(mobile);
-gui.init();
+GUI = new GUI(mobile);
+GUI.init();
 
 loadShaderFiles([
     'shaders/particles.vert',
